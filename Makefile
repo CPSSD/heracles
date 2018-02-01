@@ -16,7 +16,7 @@ clean:
 #############################################################
 
 # Runs all the tests
-test: unit-test integration-test
+test: unit-test
 
 unit-test:
 	cargo test --verbose --all
