@@ -1,0 +1,54 @@
+defaults: &defaults
+  working_directory: /code/github.com/cpssd/heracles
+  docker:
+    - image: cpssd/heracles
+
+version: 2
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: project-cache
+      - run: make build
+      - save_cache:
+          key: project-cache
+          paths:
+            - "~/.cargo"
+            - "./target"
+  unit-test:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: project-cache
+      - run: make unit-test
+  analyse:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: project-cache
+      - run:
+          name: Install Clippy
+          command: cargo install clippy
+      - run: cargo clippy
+
+workflows:
+  version: 2
+  test_build:
+    jobs:
+      - build
+      - unit-test
+  weekly-report:
+    jobs:
+      - analyse
+      # TODO: Add benchmarks
+    triggers:
+      - schedule:
+          cron: "0 0 * * 0" # Every sunday
+          filters:
+            branches:
+              only:
+                - develop
