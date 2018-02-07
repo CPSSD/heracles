@@ -21,3 +21,6 @@ install:
 script:
     - make build
     - make test
+
+notifications:
+    slack: cpssd:Jjqd9EUOGIOF3Ktf0tFY9yMA
