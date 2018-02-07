@@ -17,7 +17,6 @@ services:
       - "8081:8081"
     volumes:
       - /tmp/cerberus-docker/input:/tmp/cerberus-input:rw
-      - /tmp/cerberus-docker/intermediate:/tmp/cerberus:rw
       - /tmp/cerberus-docker/output:/tmp/cerberus-out:rw
     deploy:
       replicas: 1
@@ -40,7 +39,6 @@ services:
       - master
     volumes:
       - /tmp/cerberus-docker/input:/tmp/cerberus-input:rw
-      - /tmp/cerberus-docker/intermediate:/tmp/cerberus:rw
       - /tmp/cerberus-docker/output:/tmp/cerberus-out:rw
     entrypoint:
       - 'worker'
