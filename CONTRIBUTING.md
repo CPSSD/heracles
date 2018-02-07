@@ -1,4 +1,4 @@
-Writing Code for Cerberus
+Writing Code for Heracles
 =========================
 
 ## Code Style ##

@@ -1,7 +1,13 @@
-# cerberus
+# Heracles
 CA4019 Project
 
 [![Build Status](https://travis-ci.com/CPSSD/cerberusTwo.svg?token=Ty8HySwL3To4YV7AZfi2&branch=develop)](https://travis-ci.com/CPSSD/cerberusTwo)
+
+Heracles (/ˈhɛrəkliːz/ HERR-ə-kleez) was a divine hero in Greek mythology.
+> Underworld, Hercules encountered Cerberus. Undaunted, the hero threw his strong arms around
+> the beast, perhaps grasping all three heads at once, and wrestled Cerberus into submission.
+
+Fork of [cerberus](https://github.com/cpssd/cerberus)
 
 ---
 
