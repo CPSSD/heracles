@@ -1,7 +1,7 @@
 # Heracles
 CA4019 Project
 
-[![Build Status](https://travis-ci.com/CPSSD/cerberusTwo.svg?token=Ty8HySwL3To4YV7AZfi2&branch=develop)](https://travis-ci.com/CPSSD/cerberusTwo)
+[![Build Status](https://travis-ci.com/CPSSD/heracles.svg?token=Ty8HySwL3To4YV7AZfi2&branch=develop)](https://travis-ci.com/CPSSD/heracles)
 
 Heracles (/ˈhɛrəkliːz/ HERR-ə-kleez) was a divine hero in Greek mythology.
 > Underworld, Hercules encountered Cerberus. Undaunted, the hero threw his strong arms around
