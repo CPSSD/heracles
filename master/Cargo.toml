@@ -1,20 +1,13 @@
 [package]
-name = "master"
-version = "0.3.0"
-authors = ["Cerberus Authors <cerberus@cpssd.net>"]
+name = "heracles-master"
+version = "0.4.0"
+authors = ["Heracles Authors <heracles@cpssd.net>"]
 
 [dependencies]
 cerberus-proto = { path = "../proto" }
 chrono = "0.4"
 clap = "~2.26"
-env_logger = "0.4.3"
-error-chain = "0.11.0"
-futures = "0.1"
-futures-cpupool = "0.1"
+failure = "0.1.1"
+fern = "0.5.3"
 grpc = "0.2.1"
-log = "0.3"
-serde = "1.0"
-serde_derive = "1.0"
-serde_json = "1.0"
-util = { path = "../util" }
-uuid = { version = "0.5", features = ["v4"] }
+log = "0.4"

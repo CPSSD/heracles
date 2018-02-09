@@ -30,3 +30,6 @@ proto/src/*
 
 # Unignore makefiles
 !Makefile
+
+# Ignore all log files
+*.log
