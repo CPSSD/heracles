@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+// v0.1.0 of the datatype definitions for heracles. This is considered the
+// first version as there was no formal definition for these types before.
+package datatypes;
+
+enum JobStatus {
+    JOB_UNKNOWN = 0;
+    JOB_DONE = 1;
+    // When the Job is being split into Tasks by the master.
+    JOB_PROCESSING = 2;
+    // When the Job's Tasks are being completed by the workers.
+    JOB_IN_PROGRESS = 3;
+    JOB_FAILED = 4;
+};
+
+message Job {
+    string id = 1;
+    string client_id = 2;
+    string input_directory = 3;
+    string output_directory = 4;
+    string payload_path = 5;
+    uint64 priority = 6;
+
+    // Timing data for statistical purposes. Represented in standard UNIX
+    // timestamp form.
+    uint64 time_scheduled = 7;
+    uint64 time_started = 8;
+    uint64 time_done = 9;
+
+    JobStatus status = 10;
+    string failure_details = 11;
+}
+
+enum TaskStatus {
+    TASK_UNKNOWN = 0;
+    TASK_DONE = 1;
+    // Used for reduce tasks that are waiting on results from a map.
+    TASK_PENDING = 2;
+    TASK_IN_PROGRESS = 3;
+    TASK_FAILED = 4;
+}
+
+enum TaskType {
+    MAP = 0;
+    REDUCE = 1;
+}
+
+message Task {
+    string id = 1;
+    string job_id = 2;
+    string worker_id = 3;
+    TaskStatus status = 4;
+    TaskType type = 5;
+    uint64 priority = 6;
+    
+    uint64 time_created = 7;
+    uint64 time_started = 8;
+    uint64 time_done = 9;
+
+    repeated string input_files = 10;
+    repeated string output_files = 11;
+    string payload_path = 12;
+}

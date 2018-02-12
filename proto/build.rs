@@ -49,6 +49,7 @@ fn compile(proto_name: &str) {
 }
 
 fn main() {
+    compile("datatypes");
     compile("mapreduce");
     compile("worker");
 }
