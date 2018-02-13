@@ -2,6 +2,77 @@ syntax = "proto3";
 
 package mapreduce;
 
+import "datatypes.proto";
+
+// API v2
+
+// JobScheduleService adheres to API v2
+service JobScheduleService {
+    // Schedule a job on the cluster.
+    rpc Schedule (ScheduleRequest) returns (ScheduleResponse);
+    // Cancel a job. If everything is ok, empty message is returned, otherwise a gRPC error.
+    rpc Cancel (CancelRequest) returns (EmptyMessage);
+    // Describe some resource.
+    rpc Describe (DescribeRequest) returns (Description);
+}
+
+message ScheduleRequest {
+  // TODO: Add authentication token
+  // Only essential data is filled in by the client
+  datatypes.Job job = 1;
+}
+
+message ScheduleResponse {
+  // TODO: Consider replacing this with full datatypes.Job if more information
+  //       from the Job is needed.
+  string job_id = 1;
+}
+
+message CancelRequest {
+  string job_id = 1;
+}
+
+// Different types of resources available to get description of.
+enum ResourceType {
+  CLUSTER = 0;
+  QUEUE = 1;
+  JOB = 2;
+  TASK = 3;
+  // TODO: Enable worker information once some status about the worker is reported.
+  // WORKER = 4;
+}
+
+message DescribeRequest {
+  // Type of resource to describe.
+  ResourceType resource = 1;
+  // If the JOB resource is used, and job_id is empty, the request will fail.
+  string job_id = 2;
+  // If the TASK resource is used, and task_id is empty, the request will fail.
+  string task_id = 3;
+}
+
+// Description contains the individial descriptions for the given request. Some
+// fields might be empty depending on the ResourceType requested
+message Description {
+  // Cluster information
+  Cluster cluster = 1;
+  // Jobs are returned for both JOB and QUEUE, where if the QUEUE resource is requested,
+  // only queued jobs will be returned.
+  repeated datatypes.Job jobs = 2;
+  // List of requested tasks.
+  repeated datatypes.Task tasks = 3;
+
+  // General information about the cluster
+  message Cluster {
+    uint32 queue_size = 1;
+    uint32 available_workers = 2;
+    uint32 total_workers = 3;
+  }
+}
+
+
+// API v1
+
 // Map reduce service is responsible for scheduling jobs on the cluster
 // and getting information about the running jobs.
 service MapReduceService {
