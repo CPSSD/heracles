@@ -13,9 +13,8 @@ use std::io::{Read, Write};
 /// It attempts to parse the string from the input source as BSON and returns an `errors::Error` if
 /// the attempt fails.
 pub fn read_map_input<R: Read>(source: &mut R) -> Result<MapInputKV> {
-    let bson_document = bson::decode_document(source).chain_err(
-        || "Error parsing input BSON from source.",
-    )?;
+    let bson_document =
+        bson::decode_document(source).chain_err(|| "Error parsing input BSON from source.")?;
 
     let map_input = bson::from_bson(bson::Bson::Document(bson_document))
         .chain_err(|| "Error parsing input BSON as MapInputKV.")?;
@@ -33,15 +32,14 @@ where
     V: Default + Serialize + DeserializeOwned,
 {
     let mut input_string = String::new();
-    let bytes_read = source.read_to_string(&mut input_string).chain_err(
-        || "Error reading from source.",
-    )?;
+    let bytes_read = source
+        .read_to_string(&mut input_string)
+        .chain_err(|| "Error reading from source.")?;
     if bytes_read == 0 {
         warn!("bytes_read is 0");
     }
-    let result = serde_json::from_str(input_string.as_str()).chain_err(
-        || "Error parsing input JSON to ReduceInputKV.",
-    )?;
+    let result = serde_json::from_str(input_string.as_str())
+        .chain_err(|| "Error parsing input JSON to ReduceInputKV.")?;
     Ok(result)
 }
 
@@ -55,9 +53,7 @@ where
     K: Default + Serialize,
     V: Default + Serialize,
 {
-    serde_json::to_writer(sink, &output).chain_err(
-        || "Error writing to sink.",
-    )?;
+    serde_json::to_writer(sink, &output).chain_err(|| "Error writing to sink.")?;
     Ok(())
 }
 
@@ -67,10 +63,7 @@ where
     W: Write,
     V: Default + Serialize,
 {
-
-    serde_json::to_writer(sink, &output).chain_err(
-        || "Error writing to sink.",
-    )?;
+    serde_json::to_writer(sink, &output).chain_err(|| "Error writing to sink.")?;
     Ok(())
 }
 
@@ -152,7 +145,9 @@ mod tests {
                 },
             ],
         );
-        let test_object = IntermediateOutputObject { partitions: partitions };
+        let test_object = IntermediateOutputObject {
+            partitions: partitions,
+        };
 
         let expected_json_string = String::from(
             r#"{"partitions":{"0":[{"key":"foo_intermediate","value":"bar"},
@@ -170,7 +165,9 @@ mod tests {
 
     #[test]
     fn write_final_output_object() {
-        let test_object = FinalOutputObject { values: vec!["barbaz", "bazbar"] };
+        let test_object = FinalOutputObject {
+            values: vec!["barbaz", "bazbar"],
+        };
         let expected_json_string = r#"{"values":["barbaz","bazbar"]}"#;
         let output_vector: Vec<u8> = Vec::new();
         let mut cursor = Cursor::new(output_vector);

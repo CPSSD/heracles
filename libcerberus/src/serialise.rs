@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::Serialize;
 
-use emitter::{EmitPartitionedIntermediate, EmitFinal};
+use emitter::{EmitFinal, EmitPartitionedIntermediate};
 use errors::*;
 
 /// `IntermediateOutputPair` is a struct representing an intermediate key-value pair as outputted
@@ -66,7 +66,10 @@ where
     V: Default + Serialize,
 {
     fn emit(&mut self, partition: u64, key: K, value: V) -> Result<()> {
-        let output_array = self.sink.partitions.entry(partition).or_insert_with(Default::default);
+        let output_array = self.sink
+            .partitions
+            .entry(partition)
+            .or_insert_with(Default::default);
         output_array.push(IntermediateOutputPair {
             key: key,
             value: value,
@@ -134,7 +137,9 @@ mod tests {
             ],
         );
 
-        let output = IntermediateOutputObject { partitions: partitions };
+        let output = IntermediateOutputObject {
+            partitions: partitions,
+        };
         let mut output_set = HashSet::new();
         let expected_json_string1 =
             r#"{"partitions":{"0":[{"key":"foo_intermediate","value":"bar"},{"key":"foo_intermediate","value":"baz"}],"1":[{"key":"foo_intermediate2","value":"bar"}]}}"#;
@@ -151,7 +156,9 @@ mod tests {
     // Test that the JSON serialisation of FinalOutputObject matches the libcerberus JSON API.
     #[test]
     fn final_output_object_json_format() {
-        let output = FinalOutputObject { values: vec!["barbaz", "bazbar"] };
+        let output = FinalOutputObject {
+            values: vec!["barbaz", "bazbar"],
+        };
         let expected_json_string = r#"{"values":["barbaz","bazbar"]}"#;
 
         let json_string = serde_json::to_string(&output).unwrap();
@@ -173,7 +180,9 @@ mod tests {
             ],
         );
 
-        let expected_output = IntermediateOutputObject { partitions: partitions };
+        let expected_output = IntermediateOutputObject {
+            partitions: partitions,
+        };
 
         {
             let mut emitter = IntermediateOutputObjectEmitter::new(&mut output);
@@ -186,7 +195,9 @@ mod tests {
     #[test]
     fn final_output_emitter_works() {
         let mut output = FinalOutputObject::default();
-        let expected_output = FinalOutputObject { values: vec!["foo", "bar"] };
+        let expected_output = FinalOutputObject {
+            values: vec!["foo", "bar"],
+        };
 
         {
             let mut emitter = FinalOutputObjectEmitter::new(&mut output);

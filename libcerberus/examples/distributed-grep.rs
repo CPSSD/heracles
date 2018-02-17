@@ -21,9 +21,7 @@ impl Map for GrepMapper {
     where
         E: EmitIntermediate<Self::Key, Self::Value>,
     {
-        let regex = Regex::new(REGEX).chain_err(
-            || "Error creating regex object.",
-        )?;
+        let regex = Regex::new(REGEX).chain_err(|| "Error creating regex object.")?;
         let output_key = Path::new(&input.key)
             .file_name()
             .chain_err(|| "Error getting output key.")?
@@ -56,9 +54,7 @@ impl Reduce for GrepReducer {
 }
 
 fn run() -> Result<()> {
-    env_logger::init().chain_err(
-        || "Failed to initialise logging.",
-    )?;
+    env_logger::init().chain_err(|| "Failed to initialise logging.")?;
 
     let grep_mapper = GrepMapper;
     let grep_reducer = GrepReducer;

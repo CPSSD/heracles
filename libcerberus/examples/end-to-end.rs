@@ -26,10 +26,7 @@ impl Reduce for TestReducer {
     where
         E: EmitFinal<Self::Value>,
     {
-        emitter.emit(input.values.iter().fold(
-            String::new(),
-            |acc, x| acc + x,
-        ))?;
+        emitter.emit(input.values.iter().fold(String::new(), |acc, x| acc + x))?;
         Ok(())
     }
 }
@@ -41,12 +38,16 @@ impl Partition<String, String> for TestPartitioner {
         E: EmitPartitionedIntermediate<String, String>,
     {
         for (key, value) in input.pairs {
-            let first_char = key.chars().nth(0).chain_err(
-                || "Cannot partition key of empty string.",
-            )?;
+            let first_char = key.chars()
+                .nth(0)
+                .chain_err(|| "Cannot partition key of empty string.")?;
             let partition = {
                 if first_char.is_lowercase() {
-                    if first_char > 'm' { 1 } else { 0 }
+                    if first_char > 'm' {
+                        1
+                    } else {
+                        0
+                    }
                 } else if first_char > 'M' {
                     1
                 } else {
@@ -54,9 +55,9 @@ impl Partition<String, String> for TestPartitioner {
                 }
             };
 
-            emitter.emit(partition, key, value).chain_err(
-                || "Error partitioning map output.",
-            )?;
+            emitter
+                .emit(partition, key, value)
+                .chain_err(|| "Error partitioning map output.")?;
         }
         Ok(())
     }

@@ -9,8 +9,8 @@ extern crate clap;
 extern crate error_chain;
 extern crate futures;
 extern crate grpc;
-extern crate local_ip;
 extern crate libc;
+extern crate local_ip;
 #[macro_use]
 extern crate log;
 extern crate procinfo;
@@ -52,7 +52,7 @@ use std::sync::Arc;
 use errors::*;
 use master_interface::MasterInterface;
 use operations::OperationHandler;
-use server::{Server, ScheduleOperationService, IntermediateDataService};
+use server::{IntermediateDataService, ScheduleOperationService, Server};
 use util::init_logger;
 
 const WORKER_REGISTRATION_RETRIES: u16 = 5;
@@ -96,9 +96,7 @@ fn run() -> Result<()> {
     let port = u16::from_str(matches.value_of("port").unwrap_or(DEFAULT_PORT))
         .chain_err(|| "Error parsing port")?;
 
-    let master_interface = Arc::new(MasterInterface::new(master_addr).chain_err(
-        || "Error creating master interface.",
-    )?);
+    let master_interface = Arc::new(MasterInterface::new(master_addr).chain_err(|| "Error creating master interface.")?);
     let operation_handler = Arc::new(OperationHandler::new(Arc::clone(&master_interface)));
 
     let scheduler_service = ScheduleOperationService::new(Arc::clone(&operation_handler));
@@ -111,9 +109,7 @@ fn run() -> Result<()> {
         local_ip::get().expect("Could not get IP"),
         srv.addr().port(),
     )).chain_err(|| "Not a valid address of the worker")?;
-    register_worker(&*master_interface, &local_addr).chain_err(
-        || "Failed to register worker.",
-    )?;
+    register_worker(&*master_interface, &local_addr).chain_err(|| "Failed to register worker.")?;
 
     info!(
         "Successfully registered worker ({}) with master on {}",

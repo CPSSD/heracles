@@ -144,9 +144,7 @@ impl OperationHandler {
         let worker_status = self.get_worker_status();
         let operation_status = self.get_worker_operation_status();
 
-        self.master_interface.update_worker_status(
-            worker_status,
-            operation_status,
-        )
+        self.master_interface
+            .update_worker_status(worker_status, operation_status)
     }
 }

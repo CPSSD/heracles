@@ -60,10 +60,7 @@ mod tests {
         where
             E: EmitFinal<Self::Value>,
         {
-            emitter.emit(input.values.iter().fold(
-                String::new(),
-                |acc, x| acc + x,
-            ))?;
+            emitter.emit(input.values.iter().fold(String::new(), |acc, x| acc + x))?;
             Ok(())
         }
     }

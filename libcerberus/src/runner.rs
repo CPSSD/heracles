@@ -81,15 +81,12 @@ where
     }
 
     pub fn build(&self) -> Result<UserImplRegistry<'a, M, R, P>> {
-        let mapper = self.mapper.chain_err(
-            || "Error building UserImplRegistry: No Mapper provided",
-        )?;
-        let reducer = self.reducer.chain_err(
-            || "Error building UserImplRegistry: No Reducer provided",
-        )?;
-        let partitioner = self.partitioner.chain_err(
-            || "Error building UserImplRegistry: No Partitioner provided",
-        )?;
+        let mapper = self.mapper
+            .chain_err(|| "Error building UserImplRegistry: No Mapper provided")?;
+        let reducer = self.reducer
+            .chain_err(|| "Error building UserImplRegistry: No Reducer provided")?;
+        let partitioner = self.partitioner
+            .chain_err(|| "Error building UserImplRegistry: No Partitioner provided")?;
 
         Ok(UserImplRegistry {
             mapper: mapper,
@@ -150,9 +147,7 @@ where
 {
     let mut source = stdin();
     let mut sink = stdout();
-    let input_kv = read_map_input(&mut source).chain_err(
-        || "Error getting input to map.",
-    )?;
+    let input_kv = read_map_input(&mut source).chain_err(|| "Error getting input to map.")?;
 
     let mut pairs_vec: Vec<(M::Key, M::Value)> = Vec::new();
 
@@ -169,27 +164,23 @@ where
         )
         .chain_err(|| "Error partitioning map output")?;
 
-    write_map_output(&mut sink, &output_object).chain_err(
-        || "Error writing map output to stdout.",
-    )?;
+    write_map_output(&mut sink, &output_object)
+        .chain_err(|| "Error writing map output to stdout.")?;
     Ok(())
 }
 
 fn run_reduce<R: Reduce>(reducer: &R) -> Result<()> {
     let mut source = stdin();
     let mut sink = stdout();
-    let input_kv = read_reduce_input(&mut source).chain_err(
-        || "Error getting input to reduce.",
-    )?;
+    let input_kv = read_reduce_input(&mut source).chain_err(|| "Error getting input to reduce.")?;
     let mut output_object = FinalOutputObject::<R::Value>::default();
 
     reducer
         .reduce(input_kv, FinalOutputObjectEmitter::new(&mut output_object))
         .chain_err(|| "Error running reduce operation.")?;
 
-    write_reduce_output(&mut sink, &output_object).chain_err(
-        || "Error writing reduce output to stdout.",
-    )?;
+    write_reduce_output(&mut sink, &output_object)
+        .chain_err(|| "Error writing reduce output to stdout.")?;
     Ok(())
 }
 
