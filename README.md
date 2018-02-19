@@ -1,7 +1,6 @@
 # Heracles
 CA4019 Project
 
-[![Build Status](https://travis-ci.com/CPSSD/heracles.svg?token=Ty8HySwL3To4YV7AZfi2&branch=develop)](https://travis-ci.com/CPSSD/heracles)
 [![CircleCI](https://circleci.com/gh/CPSSD/heracles/tree/develop.svg?style=shield&circle-token=26f1c1fad4fca1912b59c58cc8095b01499340f3)](https://circleci.com/gh/CPSSD/heracles/tree/develop)
 
 Heracles (/ˈhɛrəkliːz/ HERR-ə-kleez) was a divine hero in Greek mythology.
