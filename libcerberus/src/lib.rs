@@ -34,7 +34,7 @@ pub mod runner;
 pub mod serialise;
 
 pub use errors::*;
-pub use emitter::{EmitIntermediate, EmitPartitionedIntermediate, EmitFinal};
+pub use emitter::{EmitFinal, EmitIntermediate, EmitPartitionedIntermediate};
 pub use mapper::{Map, MapInputKV};
 pub use partition::{HashPartitioner, Partition, PartitionInputPairs};
 pub use reducer::{Reduce, ReduceInputKV};

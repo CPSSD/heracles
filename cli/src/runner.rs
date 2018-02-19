@@ -34,18 +34,13 @@ fn verify_valid_path(path_str: &str) -> Result<String> {
 
 fn create_new_client_id(dir: &str, file_path: &str) -> Result<String> {
     // Create new client id as we do not have one saved.
-    fs::create_dir_all(dir).chain_err(
-        || "Error creating new client id.",
-    )?;
+    fs::create_dir_all(dir).chain_err(|| "Error creating new client id.")?;
 
     let client_id = Uuid::new_v4().to_string();
-    let mut file = fs::File::create(file_path).chain_err(
-        || "Error creating new client id.",
-    )?;
+    let mut file = fs::File::create(file_path).chain_err(|| "Error creating new client id.")?;
 
-    file.write_all(client_id.as_bytes()).chain_err(
-        || "Error creating new client id.",
-    )?;
+    file.write_all(client_id.as_bytes())
+        .chain_err(|| "Error creating new client id.")?;
 
     Ok(client_id)
 }
@@ -63,14 +58,11 @@ fn get_client_id() -> Result<String> {
     let file_path = path_buf.to_str().chain_err(|| "Error getting client id.")?;
 
     if fs::metadata(file_path).is_ok() {
-        let mut file = fs::File::open(file_path).chain_err(
-            || "Error getting client id.",
-        )?;
+        let mut file = fs::File::open(file_path).chain_err(|| "Error getting client id.")?;
 
         let mut client_id = String::new();
-        file.read_to_string(&mut client_id).chain_err(
-            || "Error getting client id.",
-        )?;
+        file.read_to_string(&mut client_id)
+            .chain_err(|| "Error getting client id.")?;
 
         return Ok(client_id);
     }
@@ -84,15 +76,11 @@ pub fn run(client: &grpc_pb::MapReduceServiceClient, matches: &ArgMatches) -> Re
         .chain_err(|| "Input directory cannot be empty")?
         .to_owned();
 
-    input = verify_valid_path(&input).chain_err(
-        || "Invalid input path.",
-    )?;
+    input = verify_valid_path(&input).chain_err(|| "Invalid input path.")?;
 
     let output = matches.value_of("output").unwrap_or("");
     if !output.is_empty() {
-        verify_valid_path(output).chain_err(
-            || "Invalid output path",
-        )?;
+        verify_valid_path(output).chain_err(|| "Invalid output path")?;
     }
 
     let mut binary = matches
@@ -100,9 +88,7 @@ pub fn run(client: &grpc_pb::MapReduceServiceClient, matches: &ArgMatches) -> Re
         .chain_err(|| "Binary cannot be empty")?
         .to_owned();
 
-    binary = verify_valid_path(&binary).chain_err(
-        || "Invalid binary path.",
-    )?;
+    binary = verify_valid_path(&binary).chain_err(|| "Invalid binary path.")?;
 
     let mut req = pb::MapReduceRequest::new();
     req.set_binary_path(binary.to_owned());
@@ -172,12 +158,10 @@ fn print_table(rep: &pb::MapReduceReport) {
             let time_taken = rep.get_done_timestamp() - rep.get_started_timestamp();
             format!("DONE ({}s)", time_taken)
         }
-        pb::Status::IN_PROGRESS => {
-            format!(
-                "IN_PROGRESS ({})",
-                get_time_offset(rep.get_started_timestamp())
-            )
-        }
+        pb::Status::IN_PROGRESS => format!(
+            "IN_PROGRESS ({})",
+            get_time_offset(rep.get_started_timestamp())
+        ),
         pb::Status::IN_QUEUE => format!("IN_QUEUE ({})", rep.get_queue_length()),
         pb::Status::FAILED => format!("FAILED\n{}", rep.get_failure_details()).to_owned(),
     };

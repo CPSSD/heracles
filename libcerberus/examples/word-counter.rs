@@ -17,9 +17,9 @@ impl Map for WordCountMapper {
     {
         for token in input.value.split(char::is_whitespace) {
             if !token.is_empty() {
-                emitter.emit(token.to_owned(), 1).chain_err(
-                    || "Error emitting map key-value pair.",
-                )?;
+                emitter
+                    .emit(token.to_owned(), 1)
+                    .chain_err(|| "Error emitting map key-value pair.")?;
             }
         }
         Ok(())
@@ -37,17 +37,15 @@ impl Reduce for WordCountReducer {
         for val in input.values {
             total += val;
         }
-        emitter.emit(total).chain_err(|| {
-            format!("Error emitting value {:?}.", total)
-        })?;
+        emitter
+            .emit(total)
+            .chain_err(|| format!("Error emitting value {:?}.", total))?;
         Ok(())
     }
 }
 
 fn run() -> Result<()> {
-    env_logger::init().chain_err(
-        || "Failed to initialise logging.",
-    )?;
+    env_logger::init().chain_err(|| "Failed to initialise logging.")?;
 
     let wc_mapper = WordCountMapper;
     let wc_reducer = WordCountReducer;

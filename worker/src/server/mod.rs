@@ -26,27 +26,23 @@ impl Server {
     ) -> Result<Self> {
         let mut server_builder = grpc::ServerBuilder::new_plain();
         server_builder.http.set_port(port);
-        server_builder.http.set_cpu_pool_threads(
-            GRPC_THREAD_POOL_SIZE,
-        );
+        server_builder
+            .http
+            .set_cpu_pool_threads(GRPC_THREAD_POOL_SIZE);
 
         // Register the ScheduleOperationService
         server_builder.add_service(
-            worker_grpc::ScheduleOperationServiceServer::new_service_def(
-                scheduler_service,
-            ),
+            worker_grpc::ScheduleOperationServiceServer::new_service_def(scheduler_service),
         );
         // Register IntermediateDataService
         server_builder.add_service(
-            worker_grpc::IntermediateDataServiceServer::new_service_def(
-                interm_data_service,
-            ),
+            worker_grpc::IntermediateDataServiceServer::new_service_def(interm_data_service),
         );
 
         Ok(Server {
-            server: server_builder.build().chain_err(
-                || "Error building gRPC server",
-            )?,
+            server: server_builder
+                .build()
+                .chain_err(|| "Error building gRPC server")?,
         })
     }
 

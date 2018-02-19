@@ -57,7 +57,9 @@ pub struct HashPartitioner {
 
 impl HashPartitioner {
     pub fn new(partition_count: u64) -> Self {
-        HashPartitioner { partition_count: partition_count }
+        HashPartitioner {
+            partition_count: partition_count,
+        }
     }
 
     fn calculate_hash<T: Hash>(&self, t: &T) -> u64 {
@@ -80,9 +82,9 @@ where
             let hash: u64 = self.calculate_hash(&key);
             let partition_count: u64 = self.partition_count;
             let partition = hash % partition_count;
-            emitter.emit(partition, key, value).chain_err(
-                || "Error partitioning map output.",
-            )?;
+            emitter
+                .emit(partition, key, value)
+                .chain_err(|| "Error partitioning map output.")?;
         }
         Ok(())
     }

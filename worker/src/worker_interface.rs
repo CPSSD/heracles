@@ -19,15 +19,14 @@ impl WorkerInterface {
     pub fn get_data<P: AsRef<Path>>(path: P, output_dir_uuid: &String) -> Result<String> {
         let path_str = path.as_ref().to_string_lossy();
         let split_path: Vec<&str> = path_str.splitn(2, "/").collect();
-        let worker_addr = SocketAddr::from_str(split_path[0]).chain_err(||"Unable to parse worker address")?;
+        let worker_addr =
+            SocketAddr::from_str(split_path[0]).chain_err(|| "Unable to parse worker address")?;
         let file = format!("/{}", split_path[1]);
         info!("getting {} from {}", &file, worker_addr);
 
         if file.contains(output_dir_uuid) {
             info!("file {} is local, loading from disk", file);
-            return io::read(file).chain_err(
-                || "Unable to read from local disk",
-            )
+            return io::read(file).chain_err(|| "Unable to read from local disk");
         }
 
         // TODO: Add client store so we don't need to create a new client every time.
@@ -35,9 +34,7 @@ impl WorkerInterface {
             &worker_addr.ip().to_string(),
             worker_addr.port(),
             Default::default(),
-        ).chain_err(|| {
-            format!("Error building client for worker {}", worker_addr)
-        })?;
+        ).chain_err(|| format!("Error building client for worker {}", worker_addr))?;
 
         let mut req = pb::IntermediateDataRequest::new();
         req.set_path(file.clone());
@@ -45,13 +42,10 @@ impl WorkerInterface {
         let res = client
             .get_intermediate_data(RequestOptions::new(), req)
             .wait()
-            .chain_err(|| {
-                format!("Failed to get {} from {}", file, worker_addr)
-            })?
+            .chain_err(|| format!("Failed to get {} from {}", file, worker_addr))?
             .1;
 
-        String::from_utf8(res.get_data().to_vec()).chain_err(
-            || "Unable to convert returned data to string",
-        )
+        String::from_utf8(res.get_data().to_vec())
+            .chain_err(|| "Unable to convert returned data to string")
     }
 }

@@ -1,4 +1,4 @@
-use clap::{App, SubCommand, Arg, ArgMatches};
+use clap::{App, Arg, ArgMatches, SubCommand};
 
 pub fn parse_command_line<'a>() -> ArgMatches<'a> {
     App::new("cli")
@@ -42,9 +42,7 @@ pub fn parse_command_line<'a>() -> ArgMatches<'a> {
                         .required(false),
                 ),
         )
-        .subcommand(SubCommand::with_name("cluster_status").about(
-            "Status of the cluster",
-        ))
+        .subcommand(SubCommand::with_name("cluster_status").about("Status of the cluster"))
         .subcommand(
             SubCommand::with_name("status")
                 .about("Status of the all MapReduces scheduled with this CLI")
