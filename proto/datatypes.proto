@@ -53,12 +53,20 @@ message Task {
     TaskStatus status = 4;
     TaskType type = 5;
     uint64 priority = 6;
-    
+
     uint64 time_created = 7;
     uint64 time_started = 8;
     uint64 time_done = 9;
 
-    repeated string input_files = 10;
+    repeated InputFile input_files = 10;
     repeated string output_files = 11;
     string payload_path = 12;
+}
+
+// Information about an input file. This is used to seek for specific parts of
+// the file.
+message InputFile {
+  string path = 1;
+  uint64 start_byte = 2;
+  uint64 end_byte = 3;
 }
