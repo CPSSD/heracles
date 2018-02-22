@@ -133,7 +133,7 @@ impl OperationHandler {
                 &reduce_request,
                 &operation_state_arc,
                 master_interface_arc,
-                output_dir_uuid,
+                &output_dir_uuid,
             );
 
             future::result(result)

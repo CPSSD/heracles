@@ -146,13 +146,13 @@ fn send_reduce_result(
 
 fn create_reduce_operations(
     reduce_request: &pb::PerformReduceRequest,
-    output_uuid: String,
+    output_uuid: &str,
 ) -> Result<Vec<ReduceOperation>> {
     let mut reduce_map: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
 
     for reduce_input_file in reduce_request.get_input_file_paths() {
         // TODO: Run these operations in parallel as networks can be slow
-        let reduce_input = WorkerInterface::get_data(reduce_input_file, &output_uuid)
+        let reduce_input = WorkerInterface::get_data(reduce_input_file, output_uuid)
             .chain_err(|| "Couldn't read map input file")?;
 
         let parsed_value: serde_json::Value =
@@ -197,7 +197,7 @@ pub fn perform_reduce(
     reduce_request: &pb::PerformReduceRequest,
     operation_state_arc: &Arc<Mutex<OperationState>>,
     master_interface_arc: Arc<MasterInterface>,
-    output_uuid: String,
+    output_uuid: &str,
 ) -> Result<()> {
     {
         let mut operation_state = operation_state_arc.lock().unwrap();
@@ -234,7 +234,7 @@ fn do_perform_reduce(
     reduce_request: &pb::PerformReduceRequest,
     operation_state_arc: Arc<Mutex<OperationState>>,
     master_interface_arc: Arc<MasterInterface>,
-    output_uuid: String,
+    output_uuid: &str,
 ) -> Result<()> {
     let reduce_operations = create_reduce_operations(reduce_request, output_uuid)
         .chain_err(|| "Error creating reduce operations from input.")?;
