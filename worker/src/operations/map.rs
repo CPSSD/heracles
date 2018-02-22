@@ -7,10 +7,10 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use bson;
+use failure::*;
 use serde_json;
 use uuid::Uuid;
 
-use errors::*;
 use cerberus_proto::worker as pb;
 use master_interface::MasterInterface;
 use super::io;
@@ -28,7 +28,7 @@ pub struct MapInput {
 }
 
 fn log_map_operation_err(err: Error, operation_state_arc: &Arc<Mutex<OperationState>>) {
-    output_error(&err.chain_err(|| "Error running map operation."));
+    output_error(&err.context("Error running map operation."));
     operation_handler::set_failed_status(operation_state_arc);
 }
 
