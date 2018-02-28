@@ -1,12 +1,17 @@
-#![feature(conservative_impl_trait)]
+//! Worker program for the heracles network. Performs the maps and reduces.
+
+#![allow(unknown_lints)]
 #![cfg_attr(test, feature(proc_macro))]
+#![deny(missing_docs, missing_debug_implementations, missing_copy_implementations, trivial_casts,
+        trivial_numeric_casts, unsafe_code, unused_import_braces, unused_qualifications)]
+#![feature(conservative_impl_trait)]
 
 extern crate bson;
 extern crate cerberus_proto;
 #[macro_use]
 extern crate clap;
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 extern crate futures;
 extern crate grpc;
 extern crate libc;
@@ -26,18 +31,6 @@ extern crate uuid;
 #[cfg(test)]
 extern crate mocktopus;
 
-mod errors {
-    error_chain! {
-        foreign_links {
-            Grpc(::grpc::Error);
-            Io(::std::io::Error);
-        }
-        links {
-            Util(::util::errors::Error, ::util::errors::ErrorKind);
-        }
-    }
-}
-
 mod master_interface;
 mod operations;
 mod server;
@@ -49,7 +42,8 @@ use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use errors::*;
+use failure::*;
+
 use master_interface::MasterInterface;
 use operations::OperationHandler;
 use server::{IntermediateDataService, ScheduleOperationService, Server};
@@ -63,7 +57,7 @@ const WORKER_REGISTRATION_RETRY_WAIT_DURATION_MS: u64 = 1000;
 const DEFAULT_PORT: &str = "0";
 const DEFAULT_MASTER_ADDR: &str = "[::]:8081";
 
-fn register_worker(master_interface: &MasterInterface, address: &SocketAddr) -> Result<()> {
+fn register_worker(master_interface: &MasterInterface, address: &SocketAddr) -> Result<(), Error> {
     let mut retries = WORKER_REGISTRATION_RETRIES;
     while retries > 0 {
         retries -= 1;
@@ -85,7 +79,7 @@ fn register_worker(master_interface: &MasterInterface, address: &SocketAddr) -> 
     Ok(())
 }
 
-fn run() -> Result<()> {
+fn run() -> Result<(), Error> {
     println!("Cerberus Worker!");
     init_logger().chain_err(|| "Failed to initialise logging.")?;
 
@@ -144,6 +138,12 @@ fn run() -> Result<()> {
     }
 }
 
-// Macro to generate a quick error_chain main function.
-// https://github.com/rust-lang-nursery/error-chain/blob/master/examples/quickstart.rs
-quick_main!(run);
+fn main() {
+    if let Err(err) = run() {
+        error!("{}", err);
+        for cause in err.causes().skip(1) {
+            error!("Caused by: {}", cause);
+        }
+        std::process::exit(1);
+    }
+}
