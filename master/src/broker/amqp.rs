@@ -20,17 +20,17 @@ pub struct Amqp;
 impl Broker for Amqp {
     fn connect(addr: SocketAddr, handle: Handle) -> Result<BrokerConnection, BrokerError> {
         let (tx, rx) = mpsc::channel::<Task>(CHANNEL_BUFFER);
+        let queue_options = QueueDeclareOptions {
+            durable: true,
+            ..Default::default()
+        };
 
         let setup_future = TcpStream::connect(&addr, &handle)
             .and_then(|stream| Client::connect(stream, &ConnectionOptions::default()))
             .and_then(|(client, _)| client.create_channel())
-            .and_then(|channel| {
+            .and_then(move |channel| {
                 channel
-                    .queue_declare(
-                        AMQP_QUEUE_NAME,
-                        &QueueDeclareOptions::default(),
-                        &FieldTable::new(),
-                    )
+                    .queue_declare(AMQP_QUEUE_NAME, &queue_options, &FieldTable::new())
                     .and_then(|_| {
                         info!("AMQP queue `{}` successfully declared.", AMQP_QUEUE_NAME);
                         future::ok(channel)
