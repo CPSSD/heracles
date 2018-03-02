@@ -7,8 +7,10 @@ extern crate cerberus_proto;
 extern crate clap;
 #[macro_use]
 extern crate error_chain;
+extern crate failure;
 extern crate futures;
 extern crate grpc;
+extern crate lapin_futures as lapin;
 extern crate libc;
 extern crate local_ip;
 #[macro_use]
@@ -20,11 +22,17 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate tls_api;
+extern crate tokio_core;
 extern crate util;
 extern crate uuid;
 
 #[cfg(test)]
 extern crate mocktopus;
+
+use std::{thread, time};
+use std::net::SocketAddr;
+use std::str::FromStr;
+use std::sync::Arc;
 
 mod errors {
     error_chain! {
@@ -38,16 +46,12 @@ mod errors {
     }
 }
 
+mod broker;
 mod master_interface;
 mod operations;
 mod server;
 mod parser;
 mod worker_interface;
-
-use std::{thread, time};
-use std::net::SocketAddr;
-use std::str::FromStr;
-use std::sync::Arc;
 
 use errors::*;
 use master_interface::MasterInterface;
