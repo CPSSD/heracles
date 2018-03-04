@@ -75,6 +75,6 @@ impl From<BrokerErrorKind> for BrokerError {
 
 impl From<Context<BrokerErrorKind>> for BrokerError {
     fn from(inner: Context<BrokerErrorKind>) -> BrokerError {
-        BrokerError { inner: inner }
+        BrokerError { inner }
     }
 }
