@@ -1,6 +1,8 @@
+pub mod adapter;
 pub mod amqp;
 
 pub use self::amqp::Amqp;
+pub use self::adapter::BrokerAdapter;
 
 use std::fmt;
 use std::fmt::Display;
