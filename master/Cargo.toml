@@ -16,4 +16,6 @@ lapin-futures = "0.10.0"
 lazy_static = "1.0"
 log = "0.4"
 protobuf = "1.4"
+rayon = "1.0.0"
 tokio-core = "0.1"
+uuid = { version = "0.6", features = ["v4"] }
