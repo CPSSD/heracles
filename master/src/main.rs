@@ -9,16 +9,20 @@
 extern crate cerberus_proto;
 extern crate chrono;
 extern crate clap;
+extern crate config;
 extern crate failure;
 extern crate fern;
 extern crate futures;
 extern crate lapin_futures as lapin;
+#[macro_use]
+extern crate lazy_static;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
 extern crate tokio_core;
 
 mod broker;
+mod settings;
 
 use failure::Error;
 use futures::future;
@@ -35,10 +39,12 @@ fn main() {
 }
 
 fn run() -> Result<(), Error> {
-    init_logger()?;
+    init_logger().expect("Failed to initialise logger.");
+    settings::init()?;
 
     let mut core = Core::new().unwrap();
 
+    info!("Starting main event loop.");
     // We don't have a main future that needs executing, but we need something to drive the event
     // loop. An empty future will always return `Async::NotReady` and will thus drive the loop.
     core.run(future::empty::<(), ()>()).unwrap();
