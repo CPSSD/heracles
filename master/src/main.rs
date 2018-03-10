@@ -23,6 +23,7 @@ extern crate tokio_core;
 
 mod broker;
 mod settings;
+mod state;
 
 use failure::Error;
 use futures::future;
