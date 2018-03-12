@@ -14,6 +14,15 @@ enum JobStatus {
   JOB_FAILED = 4;
 };
 
+// Format of the input data
+// TODO(tbolt): Add more
+enum InputDataKind {
+  // Default
+  UNDEFINED = 0;
+  // Text file delimited by newline characters ('\n')
+  DATA_TEXT_NEWLINES = 1;
+}
+
 message Job {
   string id = 1;
   string client_id = 2;
@@ -30,6 +39,8 @@ message Job {
 
   JobStatus status = 10;
   string failure_details = 11;
+
+  InputDataKind input_kind = 12;
 }
 
 enum TaskStatus {

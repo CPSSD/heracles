@@ -33,5 +33,6 @@ pub fn init() -> Result<(), Error> {
 }
 
 fn set_defaults(settings: &mut Config) -> Result<&mut Config, Error> {
+    settings.set_default("task_input_size", 67_108_864)?; // 64 MiB
     Ok(settings)
 }

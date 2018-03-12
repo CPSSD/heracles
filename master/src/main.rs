@@ -19,10 +19,13 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
+extern crate rayon;
 extern crate tokio_core;
+extern crate uuid;
 
 mod broker;
 mod settings;
+mod splitting;
 mod state;
 
 use failure::Error;
