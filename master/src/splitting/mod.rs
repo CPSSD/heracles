@@ -1,4 +1,5 @@
 mod map;
+mod reduce;
 
 use std::fmt::Display;
 use std::fmt;
@@ -23,6 +24,8 @@ pub enum SplitterErrorKind {
     InputDirectoryOpenFailed,
     #[fail(display = "Cannot have UNDEFINED InputDataKind.")]
     InvalidInputDataKind,
+    #[fail(display = "Failed to access the output file directory.")]
+    OutputDirectoryOpenFailed,
 }
 
 #[derive(Debug)]

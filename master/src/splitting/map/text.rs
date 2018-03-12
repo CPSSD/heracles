@@ -25,13 +25,13 @@ impl LineSplitter {
             .collect();
         // Maps each directory entry to a vector of input chunks, then flattens them all into a
         // single vector of chunks.
-        let input_chunks: Vec<InputFile> = entries
+        let input_chunks: Vec<InputChunk> = entries
             .into_par_iter()
             .map(|entry| {
                 let path = entry.context(SplitterErrorKind::GenericIOError)?.path();
                 LineSplitter::split_file(path)
             })
-            .collect::<Result<Vec<Vec<InputFile>>, Error>>()?
+            .collect::<Result<Vec<Vec<InputChunk>>, Error>>()?
             .into_iter()
             .flat_map(|v| v)
             .collect();
@@ -42,7 +42,7 @@ impl LineSplitter {
             task.set_status(TaskStatus::TASK_PENDING);
             task.set_kind(TaskKind::MAP);
             task.set_time_created(Utc::now().timestamp() as u64);
-            task.input_files.push(input);
+            task.set_input_chunk(input);
             task.set_payload_path(job.get_payload_path().to_string());
             ret.push(task);
         }
@@ -50,7 +50,7 @@ impl LineSplitter {
     }
 
     /// Splits a single input file into a set of chunks. Each map task gets one chunk.
-    fn split_file<P: AsRef<Path> + Clone>(p: P) -> Result<Vec<InputFile>, Error> {
+    fn split_file<P: AsRef<Path> + Clone>(p: P) -> Result<Vec<InputChunk>, Error> {
         let mut ret = Vec::new();
         let f = File::open(p.clone()).context(SplitterErrorKind::FileOpenFailed)?;
         let reader = BufReader::new(f);
@@ -91,9 +91,9 @@ impl LineSplitter {
         Ok(ret)
     }
 
-    /// Small helper function to create an `InputFile` proto.
-    fn create_input_file<P: AsRef<Path>>(path: P, start: u64, end: u64) -> InputFile {
-        let mut ret = InputFile::new();
+    /// Small helper function to create an `InputChunk` proto.
+    fn create_input_file<P: AsRef<Path>>(path: P, start: u64, end: u64) -> InputChunk {
+        let mut ret = InputChunk::new();
         ret.set_path(path.as_ref().to_string_lossy().to_string());
         ret.set_start_byte(start);
         ret.set_end_byte(end);
@@ -123,7 +123,7 @@ mod tests {
         let tasks = LineSplitter::split(&test_job).unwrap();
 
         assert_eq!(2, tasks.len());
-        assert_eq!(1003, tasks[0].get_input_files()[0].get_end_byte());
-        assert_eq!(838, tasks[1].get_input_files()[0].get_end_byte());
+        assert_eq!(1003, tasks[0].get_input_chunk().get_end_byte());
+        assert_eq!(838, tasks[1].get_input_chunk().get_end_byte());
     }
 }
