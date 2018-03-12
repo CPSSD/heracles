@@ -1,18 +1,15 @@
-//! Module for taking a `Job` and splitting it into a set of `Task`s.
-
-mod text;
+mod map;
+mod reduce;
 
 use std::fmt::Display;
 use std::fmt;
 
 use failure::*;
-use cerberus_proto::datatypes::*;
 
-pub fn split_job(job: &Job) -> Result<Vec<Task>, Error> {
-    match job.get_input_kind() {
-        InputDataKind::UNDEFINED => Err(SplitterErrorKind::InvalidInputDataKind.into()),
-        InputDataKind::DATA_TEXT_NEWLINES => text::LineSplitter::split(job),
-    }
+use cerberus_proto::datatypes::{Job, Task};
+
+pub fn split(job: &Job) -> Result<Vec<Task>, Error> {
+    map::split(job)
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Fail)]
@@ -27,6 +24,8 @@ pub enum SplitterErrorKind {
     InputDirectoryOpenFailed,
     #[fail(display = "Cannot have UNDEFINED InputDataKind.")]
     InvalidInputDataKind,
+    #[fail(display = "Failed to access the output file directory.")]
+    OutputDirectoryOpenFailed,
 }
 
 #[derive(Debug)]
