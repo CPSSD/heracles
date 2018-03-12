@@ -24,6 +24,8 @@ extern crate tokio_core;
 extern crate uuid;
 
 mod broker;
+mod optparse;
+mod scheduler;
 mod settings;
 mod splitting;
 mod state;
@@ -31,6 +33,11 @@ mod state;
 use failure::Error;
 use futures::future;
 use tokio_core::reactor::Core;
+
+use broker::Broker;
+use settings::SETTINGS;
+
+const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 
 fn main() {
     if let Err(err) = run() {
@@ -44,16 +51,23 @@ fn main() {
 
 fn run() -> Result<(), Error> {
     init_logger().expect("Failed to initialise logger.");
-    settings::init()?;
+    let arg_matches = optparse::parse_cmd_options();
+    settings::init(&arg_matches)?;
+
+    let mut error_futures = Vec::new();
 
     let mut core = Core::new().unwrap();
 
-    info!("Starting main event loop.");
-    // We don't have a main future that needs executing, but we need something to drive the event
-    // loop. An empty future will always return `Async::NotReady` and will thus drive the loop.
-    core.run(future::empty::<(), ()>()).unwrap();
+    let broker_addr = SETTINGS.read().unwrap().get("broker_address")?;
+    let broker_conn = broker::Amqp::connect(broker_addr, core.handle())?;
+    error_futures.push(broker_conn.error_future);
 
-    Ok(())
+    info!("Starting main event loop.");
+    // The future that drives the loop is a select on all of the error futures of the background
+    // services. As soon as one service fails, the event loop will terminate.
+    core.run(future::select_all(error_futures))
+        .map(|ok| ok.0)
+        .map_err(|err| err.0)
 }
 
 fn init_logger() -> Result<(), Error> {
