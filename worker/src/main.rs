@@ -10,6 +10,7 @@ extern crate error_chain;
 extern crate failure;
 extern crate futures;
 extern crate grpc;
+extern crate heracles_proto;
 extern crate lapin_futures as lapin;
 extern crate libc;
 extern crate local_ip;

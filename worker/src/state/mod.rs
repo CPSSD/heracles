@@ -7,7 +7,7 @@ use std::fmt::Display;
 
 use failure::*;
 
-use cerberus_proto::datatypes::Task;
+use heracles_proto::datatypes::Task;
 
 #[allow(doc_markdown)]
 pub trait State {

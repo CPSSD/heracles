@@ -453,10 +453,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "heracles-proto"
+version = "0.3.0"
+dependencies = [
+ "grpc 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "grpc-rust 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protoc-rust-grpc 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tls-api 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "heracles_manager"
 version = "0.4.0"
 dependencies = [
- "cerberus-proto 0.3.0",
  "chrono 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.26.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "config 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -464,6 +474,7 @@ dependencies = [
  "fern 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "grpc 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "heracles-proto 0.3.0",
  "lapin-futures 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1436,6 +1447,7 @@ dependencies = [
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "grpc 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "heracles-proto 0.3.0",
  "lapin-futures 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)",
  "local-ip 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",

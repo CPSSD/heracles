@@ -6,12 +6,12 @@
         trivial_numeric_casts, unsafe_code, unstable_features, unused_import_braces,
         unused_qualifications)]
 
-extern crate cerberus_proto;
 extern crate chrono;
 extern crate clap;
 extern crate config;
 extern crate failure;
 extern crate futures;
+extern crate heracles_proto;
 extern crate lapin_futures as lapin;
 #[macro_use]
 extern crate lazy_static;

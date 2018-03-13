@@ -8,7 +8,7 @@ use std::fmt::Display;
 use failure::*;
 use futures::Future;
 
-use cerberus_proto::datatypes::{Job, Task, TaskKind};
+use heracles_proto::datatypes::{Job, Task, TaskKind};
 
 #[allow(doc_markdown)]
 /// Interface for creating connections to state stores, such as etcd or TiKV etc.

@@ -11,7 +11,7 @@ use futures::Future;
 use futures::sync::mpsc;
 use tokio_core::reactor::Handle;
 
-use cerberus_proto::datatypes;
+use heracles_proto::datatypes;
 
 #[allow(doc_markdown)]
 /// Interface for creating connection to a message broker, such as RabbitMQ, ZeroMQ, etc.
