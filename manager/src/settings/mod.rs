@@ -50,11 +50,19 @@ fn set_options<'a>(settings: &mut Config, opts: &ArgMatches<'a>) -> Result<(), E
     if let Some(value) = opts.value_of("broker_address") {
         settings.set("broker_address", value)?;
     }
+    if let Some(value) = opts.value_of("server_port") {
+        let v = value
+            .parse::<i64>()
+            .context(SettingsErrorKind::OptionParseFailed)?;
+        settings.set("server.port", v)?;
+    }
     Ok(())
 }
 
 fn set_defaults(settings: &mut Config) -> Result<(), Error> {
     settings.set_default("input_chunk_size", 67_108_864_i64)?; // 64 MiB
+    settings.set_default("server.port", 8081)?;
+    settings.set_default("server.thread_pool_size", 8)?;
     Ok(())
 }
 
