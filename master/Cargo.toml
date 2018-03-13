@@ -1,12 +1,19 @@
 [package]
-name = "heracles-master"
+name = "heracles_manager"
 version = "0.4.0"
 authors = ["Heracles Authors <heracles@cpssd.net>"]
+
+[lib]
+name = "heracles_manager_lib"
+
+[[bin]]
+name = "heracles_manager"
+doc = false
 
 [dependencies]
 cerberus-proto = { path = "../proto" }
 chrono = "0.4"
-clap = "~2.26"
+clap = "2.26"
 config = "0.8.0"
 failure = "0.1.1"
 fern = "0.5.3"

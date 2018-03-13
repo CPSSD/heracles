@@ -16,14 +16,14 @@ use cerberus_proto::datatypes::Task;
 #[allow(doc_markdown)]
 /// Interface for creating connections to a message broker, such as RabbitMQ, ZeroMQ, etc.
 pub trait Broker {
-    fn connect(addr: SocketAddr, handle: Handle) -> Result<BrokerConnection, BrokerError>;
+    fn connect(addr: SocketAddr, handle: Handle) -> Result<BrokerConnection, Error>;
 }
 
 /// Returned from [`Broker::connect`], representing a connection to a message broker.
 pub struct BrokerConnection {
     /// Future which can only return an error. Will not complete unless an error occurs in the
     /// connection to the broker.
-    pub error_future: Box<Future<Item = (), Error = BrokerError>>,
+    pub error_future: Box<Future<Item = (), Error = Error>>,
     /// Sender end of a channel used to send inputs to the broker. All
     /// [`Task`s](cerberus_proto::datatypes::Task) sent to this channel will be serialised to bytes
     /// and sent to the broker.

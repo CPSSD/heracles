@@ -1,36 +1,19 @@
-//! Master program for the heracles network. Manages connections to all other services, accepts
-//! inputs from the user clients, and splits up assigned work to pass to workers.
-
-#![allow(unknown_lints)]
-#![deny(missing_docs, missing_debug_implementations, missing_copy_implementations, trivial_casts,
-        trivial_numeric_casts, unsafe_code, unstable_features, unused_import_braces,
-        unused_qualifications)]
-
-extern crate cerberus_proto;
 extern crate chrono;
-extern crate clap;
-extern crate config;
 extern crate failure;
 extern crate fern;
 extern crate futures;
-extern crate lapin_futures as lapin;
-#[macro_use]
-extern crate lazy_static;
+extern crate heracles_manager_lib;
 #[macro_use]
 extern crate log;
-extern crate protobuf;
-extern crate rayon;
 extern crate tokio_core;
-extern crate uuid;
 
-mod broker;
-mod settings;
-mod splitting;
-mod state;
-
-use failure::Error;
+use failure::*;
 use futures::future;
 use tokio_core::reactor::Core;
+
+use heracles_manager_lib::broker::Broker;
+use heracles_manager_lib::settings::SETTINGS;
+use heracles_manager_lib::{broker, optparse, settings};
 
 fn main() {
     if let Err(err) = run() {
@@ -44,16 +27,23 @@ fn main() {
 
 fn run() -> Result<(), Error> {
     init_logger().expect("Failed to initialise logger.");
-    settings::init()?;
+    let arg_matches = optparse::parse_cmd_options();
+    settings::init(&arg_matches)?;
+
+    let mut error_futures = Vec::new();
 
     let mut core = Core::new().unwrap();
 
-    info!("Starting main event loop.");
-    // We don't have a main future that needs executing, but we need something to drive the event
-    // loop. An empty future will always return `Async::NotReady` and will thus drive the loop.
-    core.run(future::empty::<(), ()>()).unwrap();
+    let broker_addr = SETTINGS.read().unwrap().get("broker_address")?;
+    let broker_conn = broker::Amqp::connect(broker_addr, core.handle())?;
+    error_futures.push(broker_conn.error_future);
 
-    Ok(())
+    info!("Starting main event loop.");
+    // The future that drives the loop is a select on all of the error futures of the background
+    // services. As soon as one service fails, the event loop will terminate.
+    core.run(future::select_all(error_futures))
+        .map(|ok| ok.0)
+        .map_err(|err| err.0)
 }
 
 fn init_logger() -> Result<(), Error> {

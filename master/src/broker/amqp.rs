@@ -18,7 +18,7 @@ const AMQP_QUEUE_NAME: &str = "heracles_tasks";
 pub struct Amqp;
 
 impl Broker for Amqp {
-    fn connect(addr: SocketAddr, handle: Handle) -> Result<BrokerConnection, BrokerError> {
+    fn connect(addr: SocketAddr, handle: Handle) -> Result<BrokerConnection, Error> {
         let (tx, rx) = mpsc::channel::<Task>(CHANNEL_BUFFER);
         let queue_options = QueueDeclareOptions {
             durable: true,
