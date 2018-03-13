@@ -2,7 +2,7 @@
 members = [
     "cli",
     "libcerberus",
-    "master",
+    "manager",
     "proto",
     "util",
     "worker"
