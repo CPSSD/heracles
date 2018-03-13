@@ -1,7 +1,14 @@
 [package]
-name = "heracles-master"
+name = "heracles_manager"
 version = "0.4.0"
 authors = ["Heracles Authors <heracles@cpssd.net>"]
+
+[lib]
+name = "heracles_manager_lib"
+
+[[bin]]
+name = "heracles_manager"
+doc = false
 
 [dependencies]
 cerberus-proto = { path = "../proto" }

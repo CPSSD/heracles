@@ -1,43 +1,19 @@
-//! Master program for the heracles network. Manages connections to all other services, accepts
-//! inputs from the user clients, and splits up assigned work to pass to workers.
-
-#![allow(unknown_lints)]
-#![deny(missing_docs, missing_debug_implementations, missing_copy_implementations, trivial_casts,
-        trivial_numeric_casts, unsafe_code, unstable_features, unused_import_braces,
-        unused_qualifications)]
-
-extern crate cerberus_proto;
 extern crate chrono;
-extern crate clap;
-extern crate config;
 extern crate failure;
 extern crate fern;
 extern crate futures;
-extern crate lapin_futures as lapin;
-#[macro_use]
-extern crate lazy_static;
+extern crate heracles_manager_lib;
 #[macro_use]
 extern crate log;
-extern crate protobuf;
-extern crate rayon;
 extern crate tokio_core;
-extern crate uuid;
 
-mod broker;
-mod optparse;
-mod scheduler;
-mod settings;
-mod splitting;
-mod state;
-
-use failure::Error;
+use failure::*;
 use futures::future;
 use tokio_core::reactor::Core;
 
-use broker::Broker;
-use settings::SETTINGS;
-
-const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
+use heracles_manager_lib::broker::Broker;
+use heracles_manager_lib::settings::SETTINGS;
+use heracles_manager_lib::{broker, optparse, settings};
 
 fn main() {
     if let Err(err) = run() {
