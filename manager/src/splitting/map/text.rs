@@ -10,7 +10,7 @@ use failure::*;
 use rayon::prelude::*;
 use uuid::Uuid;
 
-use cerberus_proto::datatypes::*;
+use heracles_proto::datatypes::*;
 use settings::SETTINGS;
 use super::*;
 

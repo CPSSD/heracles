@@ -3,6 +3,7 @@ members = [
     "cli",
     "libcerberus",
     "manager",
+    "legacy-proto",
     "proto",
     "util",
     "worker"

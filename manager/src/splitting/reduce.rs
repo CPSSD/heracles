@@ -5,7 +5,7 @@
 use chrono::Utc;
 use uuid::Uuid;
 
-use cerberus_proto::datatypes::*;
+use heracles_proto::datatypes::*;
 
 pub fn split(job: &Job) -> Vec<Task> {
     job.get_output_files()

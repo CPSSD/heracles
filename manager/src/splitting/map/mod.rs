@@ -4,7 +4,7 @@ mod text;
 
 use failure::*;
 
-use cerberus_proto::datatypes::*;
+use heracles_proto::datatypes::*;
 use super::SplitterErrorKind;
 
 pub fn split(job: &Job) -> Result<Vec<Task>, Error> {

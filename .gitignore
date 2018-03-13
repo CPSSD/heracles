@@ -28,6 +28,11 @@ target/
 proto/src/*
 !proto/src/lib.rs
 
+# TODO: Remove this section once legacy-proto is gone.
+# Ignore all files in legacy-proto/src which are auto-generated
+legacy-proto/src/*
+!legacy-proto/src/lib.rs
+
 # Unignore makefiles
 !Makefile
 

@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use protobuf::Message;
 
-use cerberus_proto::datatypes::{Task, TaskKind, TaskStatus};
+use heracles_proto::datatypes::{Task, TaskKind, TaskStatus};
 use super::*;
 
 // TODO: Make sure they are consistent or merge them with the master side of the library.

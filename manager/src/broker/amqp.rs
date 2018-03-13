@@ -9,7 +9,7 @@ use protobuf::Message;
 use tokio_core::net::TcpStream;
 use tokio_core::reactor::Handle;
 
-use cerberus_proto::datatypes::Task;
+use heracles_proto::datatypes::Task;
 use super::*;
 
 const CHANNEL_BUFFER: usize = 1;

@@ -4,7 +4,7 @@ use std::fmt;
 use failure::*;
 use futures::sync::mpsc;
 
-use cerberus_proto::datatypes::*;
+use heracles_proto::datatypes::*;
 
 pub struct Scheduler {
     broker_handle: mpsc::Sender<Task>,

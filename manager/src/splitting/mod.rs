@@ -6,7 +6,7 @@ use std::fmt;
 
 use failure::*;
 
-use cerberus_proto::datatypes::{Job, Task};
+use heracles_proto::datatypes::{Job, Task};
 
 pub fn split(job: &Job) -> Result<Vec<Task>, Error> {
     map::split(job)

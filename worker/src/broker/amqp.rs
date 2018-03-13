@@ -11,7 +11,7 @@ use tokio_core::net::TcpStream;
 use tokio_core::reactor::{Core, Handle};
 use protobuf;
 
-use cerberus_proto::datatypes as pb;
+use heracles_proto::datatypes as pb;
 use super::*;
 
 const CHANNEL_BUFFER: usize = 1;
