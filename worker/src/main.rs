@@ -50,6 +50,7 @@ mod broker;
 mod master_interface;
 mod operations;
 mod server;
+mod state;
 mod parser;
 mod worker_interface;
 
