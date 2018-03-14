@@ -12,9 +12,7 @@ release:
 
 clean:
 	cargo clean
-
-worker-fallback:
-	cd worker-fallback && make
+	
 #############################################################
 
 # Runs all the tests
@@ -46,3 +44,22 @@ clean-docker-images:
 clean-docker: docker-compose-down clean-docker-images
 
 clean-all: clean-docker clean
+
+#############################################################
+
+go-build: cli2 worker-fallback
+
+go-deps:
+	go get -v github.com/golang/protobuf/proto
+	go get -v github.com/golang/protobuf/protoc-gen-go
+	-go get -v -u ./worker-fallback/...
+	-go get -v -u ./cmd/hrctl/...
+
+go-proto: go-deps
+	cd proto && make
+
+worker-fallback: go-proto
+	cd worker-fallback && make
+
+cli2: go-proto
+	cd cmd && make hrctl

@@ -17,6 +17,7 @@ Fork of [cerberus](https://github.com/cpssd/cerberus)
 - Rust Nightly
 - Protobuf Compiler
 - net-tools (if running worker locally)
+- Go (1.10+ recommended)
 
 #### Deployment
 - Docker
@@ -29,7 +30,8 @@ Fork of [cerberus](https://github.com/cpssd/cerberus)
 Build everything by running:
 
 ```
-$ cargo build --all
+$ make build
+$ make go-build
 ```
 
 ---

@@ -1,4 +1,4 @@
-all: deps build
+all: build
 
 proto:
 	cd ../proto && make
@@ -10,7 +10,7 @@ deps:
 	# available on the remote branch.
 	-go get -v -u ./worker/...
 
-build: proto
+build:
 	go build -v -o ../target/debug/worker-fallback main.go
 
 test:
