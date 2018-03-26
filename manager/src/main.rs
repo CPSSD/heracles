@@ -2,7 +2,7 @@ extern crate chrono;
 extern crate failure;
 extern crate fern;
 extern crate futures;
-extern crate heracles_manager_lib;
+extern crate heracles_manager;
 #[macro_use]
 extern crate log;
 extern crate tokio_core;
@@ -11,8 +11,8 @@ use failure::*;
 use futures::future;
 use tokio_core::reactor::Core;
 
-use heracles_manager_lib::settings::SETTINGS;
-use heracles_manager_lib::{broker, optparse, settings};
+use heracles_manager::settings::SETTINGS;
+use heracles_manager::{broker, optparse, settings};
 
 fn main() {
     if let Err(err) = run() {
