@@ -1,8 +1,8 @@
 mod map;
 mod reduce;
 
-use std::fmt::Display;
 use std::fmt;
+use std::fmt::Display;
 
 use failure::*;
 

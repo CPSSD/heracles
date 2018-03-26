@@ -1,13 +1,13 @@
 //! Module owning the global settings struct, as well as functions for initialising it.
 
 use std::collections::HashMap;
-use std::fmt::Display;
 use std::fmt;
+use std::fmt::Display;
 use std::sync::RwLock;
 
 use clap::ArgMatches;
-use config::Config;
 use config;
+use config::Config;
 use failure::*;
 
 lazy_static! {

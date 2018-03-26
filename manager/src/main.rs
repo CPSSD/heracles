@@ -11,7 +11,6 @@ use failure::*;
 use futures::future;
 use tokio_core::reactor::Core;
 
-use heracles_manager_lib::broker::Broker;
 use heracles_manager_lib::settings::SETTINGS;
 use heracles_manager_lib::{broker, optparse, settings};
 
@@ -30,20 +29,15 @@ fn run() -> Result<(), Error> {
     let arg_matches = optparse::parse_cmd_options();
     settings::init(&arg_matches)?;
 
-    let mut error_futures = Vec::new();
-
     let mut core = Core::new().unwrap();
 
     let broker_addr = SETTINGS.read().unwrap().get("broker_address")?;
-    let broker_conn = broker::Amqp::connect(broker_addr, core.handle())?;
-    error_futures.push(broker_conn.error_future);
+    let broker_channel = broker::amqp::connect(broker_addr, core.handle());
 
     info!("Starting main event loop.");
-    // The future that drives the loop is a select on all of the error futures of the background
-    // services. As soon as one service fails, the event loop will terminate.
-    core.run(future::select_all(error_futures))
-        .map(|ok| ok.0)
-        .map_err(|err| err.0)
+    // We give this an empty future so that it will never terminate and continue driving other
+    // futures to completion.
+    core.run(future::empty())
 }
 
 fn init_logger() -> Result<(), Error> {

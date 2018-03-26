@@ -4,8 +4,8 @@ mod text;
 
 use failure::*;
 
-use heracles_proto::datatypes::*;
 use super::SplitterErrorKind;
+use heracles_proto::datatypes::*;
 
 pub fn split(job: &Job) -> Result<Vec<Task>, Error> {
     match job.get_input_kind() {
