@@ -18,6 +18,12 @@ Each chunk corresponds to one map task, so this can be used to scale the job.",
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("scheduler.input_queue_size")
+                .help("The size of the buffer to the input queue of the scheduler.")
+                .long("scheduler-input-queue-size")
+                .takes_value(true),
+        )
+        .arg(
             Arg::with_name("broker.address")
                 .help("The address of the broker server the manager should connect to.")
                 .long("broker-address")
@@ -33,6 +39,12 @@ Each chunk corresponds to one map task, so this can be used to scale the job.",
             Arg::with_name("server_port")
                 .help("Port on which the gRPC server is running")
                 .long("server-port")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("broker_queue_name")
+                .help("The name to register with the broker for the task processing queue.")
+                .long("broker-queue-name")
                 .takes_value(true),
         )
         .get_matches()
