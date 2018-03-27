@@ -23,5 +23,11 @@ Each chunk corresponds to one map task, so this can be used to scale the job.",
                 .long("broker-address")
                 .takes_value(true),
         )
+        .arg(
+            Arg::with_name("server_port")
+                .help("Port on which the gRPC server is running")
+                .long("server-port")
+                .takes_value(true),
+        )
         .get_matches()
 }

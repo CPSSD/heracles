@@ -11,6 +11,7 @@ extern crate clap;
 extern crate config;
 extern crate failure;
 extern crate futures;
+extern crate grpc;
 extern crate heracles_proto;
 extern crate lapin_futures as lapin;
 #[macro_use]
@@ -25,6 +26,7 @@ extern crate uuid;
 pub mod broker;
 pub mod optparse;
 pub mod scheduler;
+pub mod server;
 pub mod settings;
 pub mod splitting;
 pub mod state;

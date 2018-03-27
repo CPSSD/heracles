@@ -16,6 +16,14 @@ impl Scheduler {
             broker_handle: handle,
         }
     }
+
+    pub fn schedule(&self, _job: &Job) -> Result<String, SchedulerError> {
+        unimplemented!()
+    }
+
+    pub fn cancel(&self, _job_id: &str) -> Result<(), SchedulerError> {
+        unimplemented!()
+    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Fail)]
