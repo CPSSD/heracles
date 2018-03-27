@@ -1,15 +1,13 @@
 extern crate chrono;
 extern crate failure;
 extern crate fern;
-extern crate futures;
 extern crate heracles_manager;
 #[macro_use]
 extern crate log;
-extern crate tokio_core;
+extern crate tokio;
 
 use failure::*;
-use futures::future;
-use tokio_core::reactor::Core;
+use tokio::prelude::*;
 
 use heracles_manager::settings::SETTINGS;
 use heracles_manager::{broker, optparse, settings};
@@ -29,15 +27,14 @@ fn run() -> Result<(), Error> {
     let arg_matches = optparse::parse_cmd_options();
     settings::init(&arg_matches)?;
 
-    let mut core = Core::new().unwrap();
-
     let broker_addr = SETTINGS.read().unwrap().get("broker_address")?;
-    let broker_channel = broker::amqp::connect(broker_addr, core.handle());
+    let broker_channel = broker::amqp::connect(broker_addr);
 
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other
     // futures to completion.
-    core.run(future::empty())
+    tokio::run(future::empty());
+    Ok(())
 }
 
 fn init_logger() -> Result<(), Error> {
