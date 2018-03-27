@@ -10,9 +10,9 @@ use failure::*;
 use rayon::prelude::*;
 use uuid::Uuid;
 
+use super::*;
 use heracles_proto::datatypes::*;
 use settings::SETTINGS;
-use super::*;
 
 pub struct LineSplitter;
 

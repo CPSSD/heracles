@@ -1,5 +1,5 @@
-use std::fmt::Display;
 use std::fmt;
+use std::fmt::Display;
 
 use failure::*;
 use futures::sync::mpsc;
