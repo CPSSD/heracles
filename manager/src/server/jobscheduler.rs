@@ -1,9 +1,9 @@
 use grpc::{RequestOptions, SingleResponse};
 
+use super::*;
 use heracles_proto::mapreduce as pb;
 use heracles_proto::mapreduce_grpc as grpc_pb;
 use scheduler::Scheduler;
-use super::*;
 
 pub struct JobScheduleService {
     scheduler: Scheduler,
@@ -45,7 +45,7 @@ impl grpc_pb::JobScheduleService for JobScheduleService {
             }
             Err(err) => {
                 error!("{}", err);
-                return SingleResponse::err(grpc::Error::Other(""))
+                return SingleResponse::err(grpc::Error::Other(""));
             }
         }
     }

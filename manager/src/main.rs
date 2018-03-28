@@ -28,7 +28,7 @@ fn run() -> Result<(), Error> {
     settings::init(&arg_matches)?;
 
     let broker_addr = SETTINGS.read().unwrap().get("broker_address")?;
-    let broker_channel = broker::amqp::connect(broker_addr);
+    let broker_conn = broker::amqp::connect(broker_addr);
 
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other

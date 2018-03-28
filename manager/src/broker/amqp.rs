@@ -1,16 +1,47 @@
 use std::net::SocketAddr;
 
-use lapin::channel::{Channel, QueueDeclareOptions};
+use lapin::channel::{BasicProperties, BasicPublishOptions, Channel, QueueDeclareOptions};
 use lapin::client::{Client, ConnectionOptions};
 use lapin::types::FieldTable;
+use protobuf::Message;
 use tokio::net::TcpStream;
 use tokio::prelude::*;
 
 use super::*;
+use settings::SETTINGS;
 
-const AMQP_QUEUE_NAME: &str = "heracles_tasks";
+pub struct AMQPBrokerConnection {
+    channel: Channel<TcpStream>,
+    queue_name: String,
+}
 
-pub fn connect(addr: SocketAddr) -> impl Future<Item = Channel<TcpStream>, Error = Error> {
+impl BrokerConnection for AMQPBrokerConnection {
+    /// Sends a `Task` to the broker.
+    ///
+    /// The `Option<bool>` returned represents whether the message was acked (`Some(true)`), nacked
+    /// (`Some(false)`), or the queue is not a confirm queue (`None`).
+    fn send<'a>(&'a self, task: &'a Task) -> Box<Future<Item = Option<bool>, Error = Error> + 'a> {
+        let task_id = task.get_id().to_string();
+        let ret = future::lazy(move || future::done(task.write_to_bytes()))
+            .map_err(|e| e.context(BrokerError::TaskSerialisationFailure { task_id }))
+            .from_err()
+            .and_then(move |bytes| {
+                self.channel
+                    .basic_publish(
+                        "",
+                        &self.queue_name,
+                        &bytes,
+                        &BasicPublishOptions::default(),
+                        BasicProperties::default(),
+                    )
+                    .from_err()
+            });
+        Box::new(ret)
+    }
+}
+
+pub fn connect(addr: SocketAddr) -> impl Future<Item = AMQPBrokerConnection, Error = Error> {
+    let queue_name = SETTINGS.read().unwrap().get("broker_queue_name").unwrap();
     let queue_options = QueueDeclareOptions {
         durable: true,
         ..Default::default()
@@ -21,11 +52,17 @@ pub fn connect(addr: SocketAddr) -> impl Future<Item = Channel<TcpStream>, Error
         .and_then(|(client, _)| client.create_channel())
         .and_then(move |channel| {
             channel
-                .queue_declare(AMQP_QUEUE_NAME, &queue_options, &FieldTable::new())
-                .and_then(|_| {
-                    info!("AMQP queue `{}` successfully declared.", AMQP_QUEUE_NAME);
+                .queue_declare(queue_name, &queue_options, &FieldTable::new())
+                .and_then(move |_| {
+                    info!("AMQP queue `{}` successfully declared.", queue_name);
                     future::ok(channel)
                 })
         })
-        .map_err(|e| e.context(BrokerErrorKind::ConnectionFailed).into())
+        .map_err(|e| e.context(BrokerError::ConnectionFailed).into())
+        .and_then(move |channel| {
+            future::ok(AMQPBrokerConnection {
+                channel,
+                queue_name: queue_name.to_string(),
+            })
+        })
 }

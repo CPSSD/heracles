@@ -47,8 +47,8 @@ fn set_options<'a>(settings: &mut Config, opts: &ArgMatches<'a>) -> Result<(), E
             .context(SettingsErrorKind::OptionParseFailed)?;
         settings.set("input_chunk_size", v)?;
     }
-    if let Some(value) = opts.value_of("broker_address") {
-        settings.set("broker_address", value)?;
+    if let Some(value) = opts.value_of("broker.address") {
+        settings.set("broker.address", value)?;
     }
     if let Some(value) = opts.value_of("server_port") {
         let v = value
@@ -56,10 +56,14 @@ fn set_options<'a>(settings: &mut Config, opts: &ArgMatches<'a>) -> Result<(), E
             .context(SettingsErrorKind::OptionParseFailed)?;
         settings.set("server.port", v)?;
     }
+    if let Some(value) = opts.value_of("broker.queue_name") {
+        settings.set("broker.queue_name", value)?;
+    }
     Ok(())
 }
 
 fn set_defaults(settings: &mut Config) -> Result<(), Error> {
+    settings.set_default("broker.queue_name", "heracles_tasks")?;
     settings.set_default("input_chunk_size", 67_108_864_i64)?; // 64 MiB
     settings.set_default("server.port", 8081)?;
     settings.set_default("server.thread_pool_size", 8)?;
