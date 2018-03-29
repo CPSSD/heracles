@@ -10,7 +10,6 @@ use regex::Regex;
 
 use cerberus::*;
 
-const MAP_OUTPUT_PARTITIONS: u64 = 15;
 const REGEX: &str = r"\b\w{15,}\b";
 
 struct GrepMapper;
@@ -58,14 +57,12 @@ fn run() -> Result<()> {
 
     let grep_mapper = GrepMapper;
     let grep_reducer = GrepReducer;
-    let grep_partitioner = HashPartitioner::new(MAP_OUTPUT_PARTITIONS);
 
     let matches = cerberus::parse_command_line();
 
     let registry = UserImplRegistryBuilder::new()
         .mapper(&grep_mapper)
         .reducer(&grep_reducer)
-        .partitioner(&grep_partitioner)
         .build()
         .chain_err(|| "Error building UserImplRegistry.")?;
 

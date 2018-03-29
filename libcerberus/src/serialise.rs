@@ -56,7 +56,7 @@ where
     ///
     /// * `sink` - A mutable reference to the `IntermediateOutputObject` to receive the emitted values.
     pub fn new(sink: &'a mut IntermediateOutputObject<K, V>) -> Self {
-        IntermediateOutputObjectEmitter { sink: sink }
+        IntermediateOutputObjectEmitter { sink }
     }
 }
 
@@ -70,10 +70,7 @@ where
             .partitions
             .entry(partition)
             .or_insert_with(Default::default);
-        output_array.push(IntermediateOutputPair {
-            key: key,
-            value: value,
-        });
+        output_array.push(IntermediateOutputPair { key, value });
         Ok(())
     }
 }
@@ -92,7 +89,7 @@ impl<'a, V: Default + Serialize> FinalOutputObjectEmitter<'a, V> {
     /// * `sink` - A mutable reference to the `FinalOutputObject` to receive the emitted
     /// values.
     pub fn new(sink: &'a mut FinalOutputObject<V>) -> Self {
-        FinalOutputObjectEmitter { sink: sink }
+        FinalOutputObjectEmitter { sink }
     }
 }
 
@@ -105,9 +102,9 @@ impl<'a, V: Default + Serialize> EmitFinal<V> for FinalOutputObjectEmitter<'a, V
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use serde_json;
     use std::collections::HashSet;
-    use super::*;
 
     // Test that the JSON serialisation of IntermediateOutputObject matches the libcerberus JSON
     // API.

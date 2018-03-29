@@ -72,6 +72,10 @@ message Task {
   InputChunk input_chunk = 10;
   string output_file = 11;
   string payload_path = 12;
+
+  // Required for the map step. Should always be equal to the number of reduce
+  // steps.
+  uint64 partition_count = 13;
 }
 
 // Information about an input file. This is used to seek for specific parts of

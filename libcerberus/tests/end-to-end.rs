@@ -3,7 +3,6 @@
 #[macro_use]
 extern crate bson;
 
-use std::collections::HashSet;
 use std::env;
 use std::io::Write;
 use std::path::PathBuf;
@@ -49,17 +48,11 @@ fn run_map_valid_input() {
         panic!("Could not convert input to bson::Document.")
     }
 
-    // The ordering of partitions is not guarenteed.
-    let mut output_set = HashSet::new();
-    let expected_output1 =
-        r#"{"partitions":{"0":[{"key":"bar","value":"test"}],"1":[{"key":"zar","value":"test"}]}}"#;
-    let expected_output2 =
-        r#"{"partitions":{"1":[{"key":"zar","value":"test"}],"0":[{"key":"bar","value":"test"}]}}"#;
-    output_set.insert(expected_output1.to_owned());
-    output_set.insert(expected_output2.to_owned());
+    let expected_output =
+        r#"{"partitions":{"0":[{"key":"bar","value":"test"},{"key":"zar","value":"test"}]}}"#;
 
     let mut child = Command::new(get_bin_path())
-        .arg("map")
+        .args(&["map", "--partition_count", "1"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
@@ -79,7 +72,7 @@ fn run_map_valid_input() {
     println!("Output: {}", output_str.to_owned());
 
     assert!(output.status.success());
-    assert!(output_set.contains(&output_str.to_owned()));
+    assert_eq!(expected_output, output_str);
 }
 
 #[test]
