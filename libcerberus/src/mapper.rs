@@ -14,10 +14,7 @@ pub struct MapInputKV {
 
 impl MapInputKV {
     pub fn new(key: String, value: String) -> Self {
-        MapInputKV {
-            key: key,
-            value: value,
-        }
+        MapInputKV { key, value }
     }
 }
 

@@ -21,10 +21,7 @@ where
     V: Default + Serialize,
 {
     pub fn new(key: String, values: Vec<V>) -> Self {
-        ReduceInputKV {
-            key: key,
-            values: values,
-        }
+        ReduceInputKV { key, values }
     }
 }
 

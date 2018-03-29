@@ -1,98 +1,81 @@
+use std::hash;
 use std::io::{stdin, stdout};
 
 use chrono::prelude::*;
-use clap::{App, ArgMatches, SubCommand};
+use clap::{App, Arg, ArgMatches, SubCommand};
 use uuid::Uuid;
 
+use super::VERSION;
 use emitter::IntermediateVecEmitter;
 use errors::*;
 use io::*;
 use mapper::Map;
-use partition::{Partition, PartitionInputPairs};
+use partition::{HashPartitioner, Partition, PartitionInputPairs};
 use reducer::Reduce;
 use serialise::{FinalOutputObject, FinalOutputObjectEmitter, IntermediateOutputObject,
                 IntermediateOutputObjectEmitter};
-use super::VERSION;
 
 /// `UserImplRegistry` tracks the user's implementations of Map, Reduce, etc.
 ///
 /// The user should use the `UserImplRegistryBuilder` to create this and then pass it in to `run`.
-pub struct UserImplRegistry<'a, M, R, P>
+pub struct UserImplRegistry<'a, M, R>
 where
     M: Map + 'a,
     R: Reduce + 'a,
-    P: Partition<M::Key, M::Value> + 'a,
 {
     mapper: &'a M,
     reducer: &'a R,
-    partitioner: &'a P,
 }
 
 /// `UserImplRegistryBuilder` is used to create a `UserImplRegistry`.
-pub struct UserImplRegistryBuilder<'a, M, R, P>
+pub struct UserImplRegistryBuilder<'a, M, R>
 where
     M: Map + 'a,
     R: Reduce + 'a,
-    P: Partition<M::Key, M::Value> + 'a,
 {
     mapper: Option<&'a M>,
     reducer: Option<&'a R>,
-    partitioner: Option<&'a P>,
 }
 
-impl<'a, M, R, P> Default for UserImplRegistryBuilder<'a, M, R, P>
+impl<'a, M, R> Default for UserImplRegistryBuilder<'a, M, R>
 where
     M: Map + 'a,
     R: Reduce + 'a,
-    P: Partition<M::Key, M::Value> + 'a,
 {
-    fn default() -> UserImplRegistryBuilder<'a, M, R, P> {
+    fn default() -> UserImplRegistryBuilder<'a, M, R> {
         UserImplRegistryBuilder {
             mapper: None,
             reducer: None,
-            partitioner: None,
         }
     }
 }
 
-impl<'a, M, R, P> UserImplRegistryBuilder<'a, M, R, P>
+impl<'a, M, R> UserImplRegistryBuilder<'a, M, R>
 where
     M: Map + 'a,
     R: Reduce + 'a,
-    P: Partition<M::Key, M::Value> + 'a,
 {
-    pub fn new() -> UserImplRegistryBuilder<'a, M, R, P> {
+    pub fn new() -> UserImplRegistryBuilder<'a, M, R> {
         Default::default()
     }
 
-    pub fn mapper(&mut self, mapper: &'a M) -> &mut UserImplRegistryBuilder<'a, M, R, P> {
+    pub fn mapper(&mut self, mapper: &'a M) -> &mut UserImplRegistryBuilder<'a, M, R> {
         self.mapper = Some(mapper);
         self
     }
 
-    pub fn reducer(&mut self, reducer: &'a R) -> &mut UserImplRegistryBuilder<'a, M, R, P> {
+    pub fn reducer(&mut self, reducer: &'a R) -> &mut UserImplRegistryBuilder<'a, M, R> {
         self.reducer = Some(reducer);
         self
     }
 
-    pub fn partitioner(&mut self, partitioner: &'a P) -> &mut UserImplRegistryBuilder<'a, M, R, P> {
-        self.partitioner = Some(partitioner);
-        self
-    }
-
-    pub fn build(&self) -> Result<UserImplRegistry<'a, M, R, P>> {
+    pub fn build(&self) -> Result<UserImplRegistry<'a, M, R>> {
         let mapper = self.mapper
             .chain_err(|| "Error building UserImplRegistry: No Mapper provided")?;
         let reducer = self.reducer
             .chain_err(|| "Error building UserImplRegistry: No Reducer provided")?;
-        let partitioner = self.partitioner
-            .chain_err(|| "Error building UserImplRegistry: No Partitioner provided")?;
 
-        Ok(UserImplRegistry {
-            mapper: mapper,
-            reducer: reducer,
-            partitioner: partitioner,
-        })
+        Ok(UserImplRegistry { mapper, reducer })
     }
 }
 
@@ -106,7 +89,14 @@ pub fn parse_command_line<'a>() -> ArgMatches<'a> {
     let payload_name = format!("{}_{}", current_time.format("%+"), id);
     let app = App::new(payload_name)
         .version(VERSION.unwrap_or("unknown"))
-        .subcommand(SubCommand::with_name("map"))
+        .subcommand(
+            SubCommand::with_name("map").arg(
+                Arg::with_name("partition_count")
+                    .long("partition_count")
+                    .required(true)
+                    .takes_value(true),
+            ),
+        )
         .subcommand(SubCommand::with_name("reduce"))
         .subcommand(SubCommand::with_name("sanity-check"));
     app.get_matches()
@@ -118,15 +108,24 @@ pub fn parse_command_line<'a>() -> ArgMatches<'a> {
 ///
 /// `matches` - The output of the `parse_command_line` function.
 /// `registry` - The output of the `register_mapper_reducer` function.
-pub fn run<M, R, P>(matches: &ArgMatches, registry: &UserImplRegistry<M, R, P>) -> Result<()>
+pub fn run<M, R>(matches: &ArgMatches, registry: &UserImplRegistry<M, R>) -> Result<()>
 where
     M: Map,
     R: Reduce,
-    P: Partition<M::Key, M::Value>,
+    <M as Map>::Key: hash::Hash,
 {
     match matches.subcommand_name() {
-        Some("map") => Ok(run_map(registry.mapper, registry.partitioner)?),
-        Some("reduce") => Ok(run_reduce(registry.reducer)?),
+        Some("map") => run_map(
+            registry.mapper,
+            matches
+                .subcommand_matches("map")
+                .unwrap()
+                .value_of("partition_count")
+                .unwrap()
+                .parse::<u64>()
+                .unwrap(),
+        ),
+        Some("reduce") => run_reduce(registry.reducer),
         Some("sanity-check") => {
             run_sanity_check();
             Ok(())
@@ -136,14 +135,14 @@ where
             Ok(())
         }
         // This won't ever be reached, due to clap checking invalid commands before this.
-        _ => Ok(()),
+        _ => unreachable!(),
     }
 }
 
-fn run_map<M, P>(mapper: &M, partitioner: &P) -> Result<()>
+fn run_map<M>(mapper: &M, partition_count: u64) -> Result<()>
 where
     M: Map,
-    P: Partition<M::Key, M::Value>,
+    <M as Map>::Key: hash::Hash,
 {
     let mut source = stdin();
     let mut sink = stdout();
@@ -157,7 +156,7 @@ where
 
     let mut output_object = IntermediateOutputObject::<M::Key, M::Value>::default();
 
-    partitioner
+    HashPartitioner::new(partition_count)
         .partition(
             PartitionInputPairs::new(pairs_vec),
             IntermediateOutputObjectEmitter::new(&mut output_object),
