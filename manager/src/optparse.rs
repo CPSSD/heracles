@@ -18,9 +18,15 @@ Each chunk corresponds to one map task, so this can be used to scale the job.",
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("broker_address")
+            Arg::with_name("broker.address")
                 .help("The address of the broker server the manager should connect to.")
                 .long("broker-address")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("broker.queue_name")
+                .help("The name to register with the broker for the task processing queue.")
+                .long("broker-queue-name")
                 .takes_value(true),
         )
         .arg(

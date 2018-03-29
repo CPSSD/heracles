@@ -7,8 +7,8 @@ use failure::*;
 use grpc;
 
 use heracles_proto::mapreduce_grpc;
-use settings::SETTINGS;
 use scheduler::Scheduler;
+use settings::SETTINGS;
 
 pub struct Server {
     server: grpc::Server,

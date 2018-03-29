@@ -2,8 +2,8 @@
 //! inputs from the user clients, and splits up assigned work to pass to workers.
 
 #![allow(unknown_lints)]
-#![warn(missing_docs, missing_debug_implementations, missing_copy_implementations, trivial_casts,
-        trivial_numeric_casts, unsafe_code, unused_import_braces, unused_qualifications)]
+#![warn(missing_copy_implementations, trivial_casts, trivial_numeric_casts, unsafe_code,
+        unused_import_braces, unused_qualifications)]
 #![feature(conservative_impl_trait)]
 
 extern crate chrono;
