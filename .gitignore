@@ -26,6 +26,8 @@ target/
 
 # Ignore all files in proto/src which are auto-generated
 proto/src/*
+proto/datatypes/
+proto/mapreduce/
 !proto/src/lib.rs
 
 # TODO: Remove this section once legacy-proto is gone.

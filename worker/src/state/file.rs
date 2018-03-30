@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_file_store() {
-        let test_dir = temp_dir().join("heracles_test").join("state");
+        let test_dir = temp_dir().join("heracles_test_jobs").join("state");
 
         let st = FileStore::new(&test_dir).unwrap();
 
@@ -113,7 +113,7 @@ mod tests {
 
         let test_job_path = st.job_dir_path(job_id.clone());
         assert_eq!(
-            "/tmp/heracles_test/state/jobs/test_job",
+            "/tmp/heracles_test_jobs/state/jobs/test_job",
             test_job_path.to_str().unwrap()
         );
         setup(&test_job_path, task_id.clone());

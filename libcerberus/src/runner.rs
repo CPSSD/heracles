@@ -171,14 +171,23 @@ where
 fn run_reduce<R: Reduce>(reducer: &R) -> Result<()> {
     let mut source = stdin();
     let mut sink = stdout();
-    let input_kv = read_reduce_input(&mut source).chain_err(|| "Error getting input to reduce.")?;
-    let mut output_object = FinalOutputObject::<R::Value>::default();
+    let input_kvs = read_reduce_input(&mut source).chain_err(|| "Error getting input to reduce.")?;
+    
 
-    reducer
-        .reduce(input_kv, FinalOutputObjectEmitter::new(&mut output_object))
-        .chain_err(|| "Error running reduce operation.")?;
+    let mut output_objects = Vec::new();
 
-    write_reduce_output(&mut sink, &output_object)
+    for input_kv in input_kvs {
+        let mut output_object = FinalOutputObject::<R::Value>::default();
+        let key = input_kv.key.clone();
+        reducer
+            .reduce(input_kv, FinalOutputObjectEmitter::new(&mut output_object))
+            .chain_err(|| "Error running reduce operation.")?;
+        output_object.key = key;
+        output_objects.push(output_object);
+    }
+   
+
+    write_reduce_output(&mut sink, &output_objects)
         .chain_err(|| "Error writing reduce output to stdout.")?;
     Ok(())
 }

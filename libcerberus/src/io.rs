@@ -1,4 +1,3 @@
-use bson;
 use errors::*;
 use mapper::MapInputKV;
 use reducer::ReduceInputKV;
@@ -10,23 +9,20 @@ use std::io::{Read, Write};
 
 /// `read_map_input` reads bytes from a source and returns a `MapInputKV`.
 ///
-/// It attempts to parse the string from the input source as BSON and returns an `errors::Error` if
+/// It attempts to parse the string from the input source as JSON and returns an `errors::Error` if
 /// the attempt fails.
 pub fn read_map_input<R: Read>(source: &mut R) -> Result<MapInputKV> {
-    let bson_document =
-        bson::decode_document(source).chain_err(|| "Error parsing input BSON from source.")?;
-
-    let map_input = bson::from_bson(bson::Bson::Document(bson_document))
-        .chain_err(|| "Error parsing input BSON as MapInputKV.")?;
+    let map_input: MapInputKV = serde_json::from_reader(source)
+        .chain_err(|| "error parsing json")?;
 
     Ok(map_input)
 }
 
-/// `read_reduce_input` reads a string from a source and returns a `ReduceInputKV`.
+/// `read_reduce_input` reads a string from a source and returns a vector of `ReduceInputKV`.
 ///
 /// It attempts to parse the string from the input source as JSON and returns an `errors::Error` if
 /// the attempt fails.
-pub fn read_reduce_input<R, V>(source: &mut R) -> Result<ReduceInputKV<V>>
+pub fn read_reduce_input<R, V>(source: &mut R) -> Result<Vec<ReduceInputKV<V>>>
 where
     R: Read,
     V: Default + Serialize + DeserializeOwned,
@@ -58,7 +54,7 @@ where
 }
 
 /// `write_reduce_output` attempts to serialise a `FinalOutputObject` to a given sink.
-pub fn write_reduce_output<W, V>(sink: &mut W, output: &FinalOutputObject<V>) -> Result<()>
+pub fn write_reduce_output<W, V>(sink: &mut W, output: &[FinalOutputObject<V>]) -> Result<()>
 where
     W: Write,
     V: Default + Serialize,
@@ -76,25 +72,16 @@ mod tests {
 
     #[test]
     fn read_valid_map_input_kv() {
-        let test_input = MapInputKV {
+        let test_string = r#"{"key":"foo", "value":"bar"}"#;
+        let mut cursor = Cursor::new(test_string);
+        let expected_result = MapInputKV {
             key: "foo".to_owned(),
             value: "bar".to_owned(),
         };
 
-        let serialized_input = bson::to_bson(&test_input).unwrap();
+        let result: MapInputKV = read_map_input(&mut cursor).unwrap();
 
-        let mut input_buf = Vec::new();
-
-        if let bson::Bson::Document(document) = serialized_input {
-            bson::encode_document(&mut input_buf, &document).unwrap();
-        } else {
-            panic!("Could not convert input to bson::Document.")
-        }
-
-        let mut cursor = Cursor::new(&input_buf[..]);
-        let result = read_map_input(&mut cursor).unwrap();
-
-        assert_eq!(test_input, result);
+        assert_eq!(expected_result, result);
     }
 
     #[test]
@@ -108,16 +95,16 @@ mod tests {
 
     #[test]
     fn read_valid_reduce_input_kv() {
-        let test_string = r#"{"key":"foo","values":["bar","baz"]}"#;
+        let test_string = r#"[{"key":"foo","values":["bar","baz"]}]"#;
         let mut cursor = Cursor::new(test_string);
         let expected_result = ReduceInputKV {
             key: "foo".to_owned(),
             values: vec!["bar".to_owned(), "baz".to_owned()],
         };
 
-        let result: ReduceInputKV<String> = read_reduce_input(&mut cursor).unwrap();
+        let result: &ReduceInputKV<String> = &read_reduce_input(&mut cursor).unwrap()[0];
 
-        assert_eq!(expected_result, result);
+        assert_eq!(expected_result, *result);
     }
 
     #[test]
@@ -126,7 +113,7 @@ mod tests {
         let test_string = "";
         let mut cursor = Cursor::new(test_string);
 
-        let _: ReduceInputKV<String> = read_reduce_input(&mut cursor).unwrap();
+        let _: ReduceInputKV<String> = read_reduce_input(&mut cursor).unwrap()[0];
     }
 
     #[test]
@@ -165,10 +152,11 @@ mod tests {
 
     #[test]
     fn write_final_output_object() {
-        let test_object = FinalOutputObject {
+        let test_object = vec![FinalOutputObject {
+            key: "test".to_string(),
             values: vec!["barbaz", "bazbar"],
-        };
-        let expected_json_string = r#"{"values":["barbaz","bazbar"]}"#;
+        }];
+        let expected_json_string = r#"[{"key":"test","values":["barbaz","bazbar"]}]"#;
         let output_vector: Vec<u8> = Vec::new();
         let mut cursor = Cursor::new(output_vector);
 

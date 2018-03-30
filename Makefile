@@ -1,6 +1,6 @@
 all: build
 
-.PHONY: build release test build-docker-images clean clean-all
+.PHONY: build release test build-docker-images clean clean-all worker-fallback
 
 # Bulds the debug version of cerberus
 build:
@@ -13,6 +13,8 @@ release:
 clean:
 	cargo clean
 
+worker-fallback:
+	cd worker-fallback && make
 #############################################################
 
 # Runs all the tests
