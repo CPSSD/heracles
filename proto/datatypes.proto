@@ -70,7 +70,9 @@ message Task {
   uint64 time_done = 9;
 
   InputChunk input_chunk = 10;
-  string output_file = 11;
+  // Output files from the map and reduce tasks. In case of reduce, only one
+  // final output file is specified.
+  repeated string output_files = 11;
   string payload_path = 12;
 
   // Required for the map step. Should always be equal to the number of reduce
