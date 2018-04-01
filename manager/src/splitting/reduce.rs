@@ -4,6 +4,7 @@
 
 use chrono::Utc;
 use uuid::Uuid;
+use protobuf;
 
 use heracles_proto::datatypes::*;
 
@@ -17,7 +18,7 @@ pub fn split(job: &Job) -> Vec<Task> {
             task.set_status(TaskStatus::TASK_PENDING);
             task.set_kind(TaskKind::REDUCE);
             task.set_time_created(Utc::now().timestamp() as u64);
-            task.set_output_file(file.to_string());
+            task.set_output_files(protobuf::RepeatedField::from_vec(vec![file.to_string()]));
             task.set_payload_path(job.get_payload_path().to_string());
             task
         })
