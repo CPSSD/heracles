@@ -11,6 +11,12 @@ Fork of [cerberus](https://github.com/cpssd/cerberus)
 
 ---
 
+__NOTE: The project is currently in heavy development. Some documentation might
+be out of date before the project is finalized. It is absolutely not yet suited
+for production use.__
+
+---
+
 ## Requirements:
 
 #### Development
