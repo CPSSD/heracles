@@ -1,7 +1,5 @@
 /// This is a set of integration tests which run against a dummy payload binary living in
 /// `libcerberus/src/bin/end-to-end.rs`.
-#[macro_use]
-extern crate bson;
 
 use std::env;
 use std::io::Write;
@@ -36,18 +34,7 @@ fn run_sanity_check() {
 
 #[test]
 fn run_map_valid_input() {
-    let bson_input = bson!({
-        "key": "foo",
-        "value":"bar zar"
-    });
-
-    let mut input_buf = Vec::new();
-    if let bson::Bson::Document(document) = bson_input {
-        bson::encode_document(&mut input_buf, &document).unwrap();
-    } else {
-        panic!("Could not convert input to bson::Document.")
-    }
-
+    let json_input = r#"{"key":"foo","value":"bar zar"}"#;
     let expected_output =
         r#"{"partitions":{"0":[{"key":"bar","value":"test"},{"key":"zar","value":"test"}]}}"#;
 
@@ -63,7 +50,7 @@ fn run_map_valid_input() {
         .stdin
         .as_mut()
         .unwrap()
-        .write_all(&input_buf[..])
+        .write_all(json_input.as_bytes())
         .unwrap();
 
     let output = child.wait_with_output().unwrap();
@@ -101,8 +88,8 @@ fn run_map_invalid_input() {
 
 #[test]
 fn run_reduce_valid_input() {
-    let json_input = r#"{"key":"foo","values":["bar","baz"]}"#;
-    let expected_output = r#"{"values":["barbaz"]}"#;
+    let json_input = r#"[{"key":"foo","values":["bar","baz"]}]"#;
+    let expected_output = r#"[{"key":"foo","values":["barbaz"]}]"#;
 
     let mut child = Command::new(get_bin_path())
         .arg("reduce")

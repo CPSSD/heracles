@@ -32,6 +32,7 @@ where
 /// entire output of a reduce operation, ready to be serialised to JSON.
 #[derive(Debug, Default, PartialEq, Serialize)]
 pub struct FinalOutputObject<V: Default + Serialize> {
+    pub key: String,
     pub values: Vec<V>,
 }
 
@@ -154,9 +155,10 @@ mod tests {
     #[test]
     fn final_output_object_json_format() {
         let output = FinalOutputObject {
+            key: "test".to_string(),
             values: vec!["barbaz", "bazbar"],
         };
-        let expected_json_string = r#"{"values":["barbaz","bazbar"]}"#;
+        let expected_json_string = r#"{"key":"test","values":["barbaz","bazbar"]}"#;
 
         let json_string = serde_json::to_string(&output).unwrap();
 
@@ -193,6 +195,7 @@ mod tests {
     fn final_output_emitter_works() {
         let mut output = FinalOutputObject::default();
         let expected_output = FinalOutputObject {
+            key: String::new(),
             values: vec!["foo", "bar"],
         };
 

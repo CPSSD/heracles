@@ -34,13 +34,21 @@ jobs:
           name: Install Clippy
           command: cargo install clippy
       - run: cargo clippy
-
+  worker-fallback:
+    working_directory: /go/src/github.com/cpssd/heracles
+    docker:
+      - image: golang:1.10-alpine
+    steps:
+      - checkout
+      - run: apk -U add protobuf make git
+      - run: make worker-fallback
 workflows:
   version: 2
   test_build:
     jobs:
       - build
       - unit-test
+      - worker-fallback
   weekly-report:
     jobs:
       - analyse
