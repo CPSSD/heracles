@@ -40,3 +40,6 @@ legacy-proto/src/*
 
 # Ignore all log files
 *.log
+
+# Go dependencies
+vendor/

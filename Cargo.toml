@@ -5,6 +5,4 @@ members = [
     "manager",
     "legacy-proto",
     "proto",
-    "util",
-    "worker"
 ]
