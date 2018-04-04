@@ -56,6 +56,7 @@ mod parser;
 mod worker_interface;
 
 use errors::*;
+use broker::BrokerAdapter;
 use master_interface::MasterInterface;
 use operations::OperationHandler;
 use server::{IntermediateDataService, ScheduleOperationService, Server};
@@ -68,6 +69,7 @@ const WORKER_REGISTRATION_RETRY_WAIT_DURATION_MS: u64 = 1000;
 // Setting the port to 0 means a random available port will be selected
 const DEFAULT_PORT: &str = "0";
 const DEFAULT_MASTER_ADDR: &str = "[::]:8081";
+const DEFAULT_BROKER_ADDR: &str = "rabbitmq:5672"; // Assumes Docker location via link
 
 fn register_worker(master_interface: &MasterInterface, address: &SocketAddr) -> Result<()> {
     let mut retries = WORKER_REGISTRATION_RETRIES;
@@ -101,9 +103,19 @@ fn run() -> Result<()> {
     ).chain_err(|| "Error parsing master address")?;
     let port = u16::from_str(matches.value_of("port").unwrap_or(DEFAULT_PORT))
         .chain_err(|| "Error parsing port")?;
+    let broker_addr = SocketAddr::from_str(
+        matches.value_of("broker").unwrap_or(DEFAULT_BROKER_ADDR),
+    ).chain_err(|| "Error parsing broker address")?;
 
     let master_interface = Arc::new(MasterInterface::new(master_addr).chain_err(|| "Error creating master interface.")?);
     let operation_handler = Arc::new(OperationHandler::new(Arc::clone(&master_interface)));
+
+    // TODO: Consider removing this code once the entire worker is modified to better fit the new
+    //       architecture.
+    thread::spawn(move || {
+        BrokerAdapter::run(broker_addr, Arc::clone(&operation_handler));
+    });
+
 
     let scheduler_service = ScheduleOperationService::new(Arc::clone(&operation_handler));
     let interm_data_service = IntermediateDataService;
