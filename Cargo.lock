@@ -176,17 +176,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cerberus-proto"
-version = "0.3.0"
-dependencies = [
- "grpc 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "grpc-rust 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "protobuf 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "protoc-rust-grpc 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "tls-api 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "cfg-if"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
