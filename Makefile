@@ -47,19 +47,9 @@ clean-all: clean-docker clean
 
 #############################################################
 
-go-build: cli2 worker-fallback
-
-go-deps:
-	go get -v github.com/golang/protobuf/proto
-	go get -v github.com/golang/protobuf/protoc-gen-go
-	-go get -v -u ./worker-fallback/...
-	-go get -v -u ./cmd/hrctl/...
-
-go-proto: go-deps
+go-proto:
 	cd proto && make
 
-worker-fallback: go-proto
-	cd worker-fallback && make
-
-cli2: go-proto
-	cd cmd && make hrctl
+go-build: go-proto
+	go build -o ./target/debug/worker worker/worker.go
+	go build -o ./target/debug/hrctl hrctl/hrctl.go

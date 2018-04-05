@@ -24,6 +24,7 @@ for production use.__
 - Protobuf Compiler
 - net-tools (if running worker locally)
 - Go (1.10+ recommended)
+- Dep (`go get github.com/golang/dep/cmd/dep`)
 
 #### Deployment
 - Docker
