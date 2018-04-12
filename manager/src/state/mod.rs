@@ -63,6 +63,8 @@ pub enum StateErrorKind {
     TaskWriteFailed,
     #[fail(display = "Failed to create pending task")]
     PendingTaskWriteFailed,
+    #[fail(display = "Failed to remove pending task")]
+    PendingTaskRemoveFailed,
     #[fail(display = "Failed operation.")]
     OperationFailed,
 }

@@ -132,8 +132,8 @@ impl State for FileStore {
         pending_file_path.push(task_id);
 
         match task.get_status() {
-            TaskStatus::TASK_UNKNOWN => Ok(())
-            TaskStatus::TASK_IN_PROGRESS => Ok(())
+            TaskStatus::TASK_UNKNOWN => return Ok(()),
+            TaskStatus::TASK_IN_PROGRESS => return Ok(()),
             TaskStatus::TASK_PENDING => {
                 File::create(pending_file_path)
                     .context(StateErrorKind::PendingTaskWriteFailed)?
