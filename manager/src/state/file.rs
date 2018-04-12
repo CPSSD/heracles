@@ -131,10 +131,25 @@ impl State for FileStore {
         }
         pending_file_path.push(task_id);
 
-        File::create(pending_file_path)
-            .context(StateErrorKind::PendingTaskWriteFailed)?
-            .write_all(&task_id.as_bytes())
-            .context(StateErrorKind::PendingTaskWriteFailed)?;
+        match task.get_status() {
+            TaskStatus::TASK_UNKNOWN => Ok(())
+            TaskStatus::TASK_IN_PROGRESS => Ok(())
+            TaskStatus::TASK_PENDING => {
+                File::create(pending_file_path)
+                    .context(StateErrorKind::PendingTaskWriteFailed)?
+                    .write_all(&task_id.as_bytes())
+                    .context(StateErrorKind::PendingTaskWriteFailed)?;
+            }
+            TaskStatus::TASK_DONE => {
+                fs::remove_file(pending_file_path)
+                    .context(StateErrorKind::PendingTaskRemoveFailed)?;
+            }
+            TaskStatus::TASK_FAILED => {
+                // TODO: Do we want to remove the pending file if the task
+                //       fails or do we keep it?
+            }
+        }
+        
         Ok(())
     }
 

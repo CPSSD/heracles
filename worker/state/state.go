@@ -20,6 +20,8 @@ func New() (State, error) {
 	case "file":
 		location := settings.Get("state.location").(string)
 		return NewFileStore(location)
+	case "empty":
+		return NewEmptyStore()
 	}
 
 	return nil, errors.New("unknown state kind")
