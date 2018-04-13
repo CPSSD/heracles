@@ -18,8 +18,8 @@ use state::State;
 /// Manages the entire data pipeline of the manager and links together all of the manager's
 /// components.
 pub struct Scheduler {
-    broker: BrokerConnection,
-    state: State,
+    broker: Box<BrokerConnection>,
+    store: Box<State>,
 }
 
 impl Scheduler {
@@ -27,7 +27,7 @@ impl Scheduler {
     ///
     /// Takes a handle to a [`heracles_manager_lib::broker::Broker`] which it uses to send
     /// [`Task`]s to workers for execution.
-    pub fn new(broker: BrokerConnection, store: State) -> Result<Self, Error> {
+    pub fn new(broker: Box<BrokerConnection>, store: Box<Store>) -> Result<Self, Error> {
         Ok(Scheduler {
             broker,
             store,
@@ -51,10 +51,10 @@ impl Scheduler {
     fn process_task<'a>(&'a self, mut task: Task) -> impl Future<Item = Task, Error = Error> + 'a {
         task.set_time_started(Utc::now().timestamp() as u64);
         task.set_status(TaskStatus::TASK_IN_PROGRESS);
-        self.state.save_task(task);
+        self.store.save_task(&task);
 
-        self.broker.send(task)
-            .map_err(|e| e.context(BrokerSendFailure))
+        self.broker.send(&task)
+            .map_err(|e| e.context(SchedulerError::BrokerSendFailure))
             .from_err()
             .and_then(|ack| {
                 if let Some(completed) = ack {
@@ -68,7 +68,7 @@ impl Scheduler {
                     panic!("ack of task failed. this should not happen");
                 }
                 task.set_time_done(Utc::now().timestamp() as u64);
-                self.state.save_task(task);
+                self.store.save_task(&task);
                 future::ok(task);
             })
     }
@@ -76,8 +76,6 @@ impl Scheduler {
 
 #[derive(Debug, Fail)]
 pub enum SchedulerError {
-    #[fail(display = "failed to serialise task with id {}", task_id)]
-    TaskSerialisationFailure { task_id: String },
     #[fail(display = "failed to send task to broker")]
     BrokerSendFailure,
 }
