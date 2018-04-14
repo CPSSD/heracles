@@ -38,24 +38,28 @@ impl Scheduler {
     }
 
     fn process_job<'a>(&'a self, job: Job) -> impl Future<Item = Job, Error = Error> + 'a {
-        lazy(|| done(splitting::map::split(&job)))
-            .and_then(|tasks| self.run_tasks(tasks))
-            .and_then(move |_| future::ok(splitting::reduce::split(&job)))
-            .and_then(|tasks| self.run_tasks(tasks))
+        lazy(move || done(splitting::map::split(&job.clone())))
+            .and_then(move |tasks| self.run_tasks(tasks))
+            .and_then(move |_| future::ok(splitting::reduce::split(&job.clone())))
+            .and_then(move |tasks| self.run_tasks(tasks))
             .and_then(move |_| {
                 // mark job as done
                 future::ok(job)
             })
     }
 
-    fn run_tasks<'a>(&self, tasks: Vec<Task>) -> impl Future<Item = (), Error = Error> + 'a {
-        future::join_all(tasks.iter().map(|task| self.process_task(task)))
-            .and_then(|_| {
-                future::ok(())
-            })
+    fn run_tasks<'a>(&'a self, tasks: Vec<Task>) -> impl Future<Item = (), Error = Error> + 'a {
+        // Normally we would do `.into_iter()` on the task, but it looks like there is a problem
+        // with it currently. This issue describes the error we are having:
+        //      https://github.com/rust-lang/rust/issues/49926
+        let mut task_futures = vec![];
+        for mut task in tasks {
+            task_futures.push(self.process_task(&mut task.clone()));
+        }
+        future::join_all(task_futures).and_then(|_| future::ok(()))
     }
 
-    fn process_task<'a>(&'a self, mut task: &'a Task) -> impl Future<Item = (), Error = Error> + 'a {
+    fn process_task<'a>(&'a self, task: &'a mut Task) -> impl Future<Item = (), Error = Error> + 'a {
         task.set_time_started(Utc::now().timestamp() as u64);
         task.set_status(TaskStatus::TASK_IN_PROGRESS);
         self.store.save_task(&task);
