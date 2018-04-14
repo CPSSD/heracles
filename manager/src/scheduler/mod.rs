@@ -46,7 +46,8 @@ impl Scheduler {
         // TODO: Scheduling time
 
         self.store.save_job(&job.clone());
-        self.tx.send(job.clone());
+
+        self.tx.clone().send(job.clone());
 
         Ok(id)
     }
