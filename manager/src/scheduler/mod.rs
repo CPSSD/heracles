@@ -1,8 +1,5 @@
 //! Module containing the `Scheduler`, a struct which manages the pipeline of the manager and links
 //! all of the other components together.
-
-use std::sync::Arc;
-
 use chrono::Utc;
 use failure::*;
 use futures::*;
@@ -16,8 +13,8 @@ use state::State;
 /// Manages the entire data pipeline of the manager and links together all of the manager's
 /// components.
 pub struct Scheduler {
-    broker: Box<BrokerConnection + Send>,
-    store: Box<State + Send>,
+    broker: Box<BrokerConnection + Send + Sync>,
+    store: Box<State + Send + Sync>,
 }
 
 impl Scheduler {
@@ -25,7 +22,7 @@ impl Scheduler {
     ///
     /// Takes a handle to a [`heracles_manager_lib::broker::Broker`] which it uses to send
     /// [`Task`]s to workers for execution.
-    pub fn new(broker: Box<BrokerConnection + Send>, store: Box<State + Send>) -> Result<Self, Error> {
+    pub fn new(broker: Box<BrokerConnection + Send + Sync>, store: Box<State + Send + Sync>) -> Result<Self, Error> {
         Ok(Scheduler {
             broker,
             store,
@@ -70,7 +67,7 @@ impl Scheduler {
         self.broker.send(&task)
             // .map_err(|e| e.context(SchedulerError::BrokerSendFailure))
             // .from_err()
-            .and_then(|ack| {
+            .and_then(move |ack| {
                 if let Some(completed) = ack {
                     if completed {
                         task.set_status(TaskStatus::TASK_DONE);

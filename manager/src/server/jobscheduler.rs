@@ -55,7 +55,7 @@ impl grpc_pb::JobScheduleService for JobScheduleService {
     fn describe(
         &self,
         _: RequestOptions,
-        req: pb::DescribeRequest,
+        _req: pb::DescribeRequest,
     ) -> SingleResponse<pb::Description> {
         unimplemented!()
     }
