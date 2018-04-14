@@ -3,18 +3,22 @@
 use chrono::Utc;
 use failure::*;
 use futures::*;
+use futures::sync::mpsc;
+use uuid::Uuid;
 
 use heracles_proto::datatypes::*;
-
 use splitting;
 use broker::BrokerConnection;
 use state::State;
+use settings::SETTINGS;
 
 /// Manages the entire data pipeline of the manager and links together all of the manager's
 /// components.
 pub struct Scheduler {
     broker: Box<BrokerConnection + Send + Sync>,
     store: Box<State + Send + Sync>,
+    rx: mpsc::Receiver<Job>,
+    tx: mpsc::Sender<Job>,
 }
 
 impl Scheduler {
@@ -23,18 +27,34 @@ impl Scheduler {
     /// Takes a handle to a [`heracles_manager_lib::broker::Broker`] which it uses to send
     /// [`Task`]s to workers for execution.
     pub fn new(broker: Box<BrokerConnection + Send + Sync>, store: Box<State + Send + Sync>) -> Result<Self, Error> {
+        let (tx, rx) =
+            mpsc::channel::<Job>(SETTINGS.read().unwrap().get("scheduler.input_queue_size")?);
         Ok(Scheduler {
             broker,
             store,
+            rx,
+            tx,
         })
     }
 
-    pub fn schedule<'a>(&'a self, _job: &Job) -> Result<String, SchedulerError> {
-        unimplemented!()
+    pub fn schedule<'a>(&'a self, job: &Job) -> Result<String, SchedulerError> {
+        let id = Uuid::new_v4().to_string();
+        job.set_id(id);
+        // TODO: Scheduling time
+
+        self.tx.send(job.clone());
+
+        Ok(id)
     }
 
     pub fn cancel<'a>(&'a self, _job_id: &str) -> Result<(), SchedulerError> {
         unimplemented!()
+    }
+
+    pub fn run(&self) -> Result<(), SchedulerError> {
+        self.rx
+            .map_err(|e| e)
+            .for_each(|job| self.process_job(job))
     }
 
     fn process_job<'a>(&'a self, job: Job) -> impl Future<Item = Job, Error = Error> + 'a {
@@ -95,4 +115,6 @@ pub enum SchedulerError {
     MapSplitFailure,
     #[fail(display = "failed to send task to broker")]
     BrokerSendFailure,
+    #[fail(display = "error receiving")]
+    RxFailure,
 }
