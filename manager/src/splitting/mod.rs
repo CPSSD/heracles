@@ -6,7 +6,7 @@ use std::fmt::Display;
 
 use failure::*;
 
-use heracles_proto::datatypes::{Job, Task};
+// use heracles_proto::datatypes::{Job, Task};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Fail)]
 pub enum SplitterErrorKind {

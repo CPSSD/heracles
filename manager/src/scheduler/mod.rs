@@ -5,6 +5,7 @@ use failure::*;
 use futures::*;
 use futures::sync::mpsc;
 use uuid::Uuid;
+use tokio;
 
 use heracles_proto::datatypes::*;
 use splitting;
@@ -37,11 +38,14 @@ impl Scheduler {
         })
     }
 
-    pub fn schedule<'a>(&'a self, job: &Job) -> Result<String, SchedulerError> {
+    pub fn schedule<'a>(&'a self, req: Job) -> Result<String, SchedulerError> {
+        let mut job = req.clone();
+
         let id = Uuid::new_v4().to_string();
-        job.set_id(id);
+        job.set_id(id.clone());
         // TODO: Scheduling time
 
+        self.store.save_job(&job.clone());
         self.tx.send(job.clone());
 
         Ok(id)
@@ -51,13 +55,14 @@ impl Scheduler {
         unimplemented!()
     }
 
-    pub fn run(&self) -> Result<(), SchedulerError> {
+    pub fn run<'a>(&'a self) -> impl Future<Item = (), Error = Error> + 'a {
         self.rx
-            .map_err(|e| e)
-            .for_each(|job| self.process_job(job))
+            .map_err(|_| unreachable!("should never happen"))
+            .for_each(move |job| self.process_job(job))
+            .map_err(|_| SchedulerError::RxFailure.into())
     }
 
-    fn process_job<'a>(&'a self, job: Job) -> impl Future<Item = Job, Error = Error> + 'a {
+    fn process_job<'a>(&'a self, job: Job) -> impl Future<Item = (), Error = Error> + 'a {
         // TODO: Refactor this ugly code. This should not be cloned so many times.
         let job1 = job.clone();
         let job2 = job.clone();
@@ -68,7 +73,9 @@ impl Scheduler {
             .and_then(move |tasks| self.run_tasks(tasks))
             .and_then(move |_| {
                 // mark job as done
-                future::ok(job3)
+
+                self.store.save_job(&job3);
+                future::ok(())
             })
     }
 

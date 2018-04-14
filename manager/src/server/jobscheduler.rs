@@ -23,7 +23,7 @@ impl grpc_pb::JobScheduleService for JobScheduleService {
         _: RequestOptions,
         req: pb::ScheduleRequest,
     ) -> SingleResponse<pb::ScheduleResponse> {
-        match self.scheduler.schedule(req.get_job()) {
+        match self.scheduler.schedule(req.get_job().clone()) {
             Ok(job_id) => {
                 let mut res = pb::ScheduleResponse::new();
                 res.set_job_id(job_id);
