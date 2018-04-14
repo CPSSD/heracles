@@ -38,13 +38,17 @@ impl Scheduler {
     }
 
     fn process_job<'a>(&'a self, job: Job) -> impl Future<Item = Job, Error = Error> + 'a {
-        lazy(move || done(splitting::map::split(&job.clone())))
+        // TODO: Refactor this ugly code. This should not be cloned so many times.
+        let job1 = job.clone();
+        let job2 = job.clone();
+        let job3 = job.clone();
+        lazy(move || done(splitting::map::split(&job1)))
             .and_then(move |tasks| self.run_tasks(tasks))
-            .and_then(move |_| future::ok(splitting::reduce::split(&job.clone())))
+            .and_then(move |_| future::ok(splitting::reduce::split(&job2)))
             .and_then(move |tasks| self.run_tasks(tasks))
             .and_then(move |_| {
                 // mark job as done
-                future::ok(job)
+                future::ok(job3)
             })
     }
 
@@ -54,17 +58,17 @@ impl Scheduler {
         //      https://github.com/rust-lang/rust/issues/49926
         let mut task_futures = vec![];
         for mut task in tasks {
-            task_futures.push(self.process_task(&mut task.clone()));
+            task_futures.push(self.process_task(task.clone()));
         }
         future::join_all(task_futures).and_then(|_| future::ok(()))
     }
 
-    fn process_task<'a>(&'a self, task: &'a mut Task) -> impl Future<Item = (), Error = Error> + 'a {
+    fn process_task<'a>(&'a self, mut task: Task) -> impl Future<Item = (), Error = Error> + 'a {
         task.set_time_started(Utc::now().timestamp() as u64);
         task.set_status(TaskStatus::TASK_IN_PROGRESS);
         self.store.save_task(&task);
 
-        self.broker.send(&task)
+        self.broker.send(task.clone())
             // .map_err(|e| e.context(SchedulerError::BrokerSendFailure))
             // .from_err()
             .and_then(move |ack| {
