@@ -5,12 +5,14 @@ use heracles_proto::mapreduce as pb;
 use heracles_proto::mapreduce_grpc as grpc_pb;
 use scheduler::Scheduler;
 
+use std::sync::Arc;
+
 pub struct JobScheduleService {
-    scheduler: Scheduler,
+    scheduler: Arc<Scheduler>,
 }
 
 impl JobScheduleService {
-    pub fn new(scheduler: Scheduler) -> Self {
+    pub fn new(scheduler: Arc<Scheduler>) -> Self {
         JobScheduleService { scheduler }
     }
 }

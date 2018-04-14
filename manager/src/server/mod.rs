@@ -10,12 +10,14 @@ use heracles_proto::mapreduce_grpc;
 use scheduler::Scheduler;
 use settings::SETTINGS;
 
+use std::sync::Arc;
+
 pub struct Server {
     server: grpc::Server,
 }
 
 impl Server {
-    pub fn new(scheduler: Scheduler) -> Result<Self, Error> {
+    pub fn new(scheduler: Arc<Scheduler>) -> Result<Self, Error> {
         let mut builder = grpc::ServerBuilder::new_plain();
         builder
             .http
