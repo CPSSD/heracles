@@ -1,6 +1,6 @@
 mod file;
 
-use self::file::FileStore;
+pub use self::file::FileStore;
 
 use std::fmt;
 use std::fmt::Display;
