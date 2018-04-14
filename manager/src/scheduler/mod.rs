@@ -16,8 +16,8 @@ use state::State;
 /// Manages the entire data pipeline of the manager and links together all of the manager's
 /// components.
 pub struct Scheduler {
-    broker: Arc<BrokerConnection>,
-    store: Arc<State>,
+    broker: Box<BrokerConnection + Send>,
+    store: Box<State + Send>,
 }
 
 impl Scheduler {
@@ -25,7 +25,7 @@ impl Scheduler {
     ///
     /// Takes a handle to a [`heracles_manager_lib::broker::Broker`] which it uses to send
     /// [`Task`]s to workers for execution.
-    pub fn new(broker: Arc<BrokerConnection>, store: Arc<State>) -> Result<Self, Error> {
+    pub fn new(broker: Box<BrokerConnection + Send>, store: Box<State + Send>) -> Result<Self, Error> {
         Ok(Scheduler {
             broker,
             store,
