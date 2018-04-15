@@ -10,7 +10,9 @@ use failure::*;
 use tokio::prelude::*;
 
 use heracles_manager::settings::SETTINGS;
-use heracles_manager::{broker, optparse, settings};
+use heracles_manager::{broker, optparse, scheduler, server, state, settings};
+
+use std::path::PathBuf;
 
 fn main() {
     if let Err(err) = run() {
@@ -30,10 +32,17 @@ fn run() -> Result<(), Error> {
     let broker_addr = SETTINGS.read().unwrap().get("broker_address")?;
     let broker_conn = broker::amqp::connect(broker_addr);
 
+    // let store = state::FileStore::new(PathBuf::from_str("/tmp"))?; // replace with settings
+
+    // let schdlr = scheduler::Scheduler::new(Box::new(broker_conn), Box::new(store))?;
+
+    // let srv = server::Server::new(schdlr)?;
+
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other
     // futures to completion.
-    tokio::run(future::empty());
+    // tokio::run(schdlr.run());
+    tokio::run(futures::empty());
     Ok(())
 }
 

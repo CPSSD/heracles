@@ -1,5 +1,7 @@
 //! Module containing the `Scheduler`, a struct which manages the pipeline of the manager and links
 //! all of the other components together.
+use std::cell::RefCell;
+
 use chrono::Utc;
 use failure::*;
 use futures::*;
@@ -18,7 +20,7 @@ use settings::SETTINGS;
 pub struct Scheduler {
     broker: Box<BrokerConnection + Send + Sync>,
     store: Box<State + Send + Sync>,
-    rx: mpsc::Receiver<Job>,
+    rx: RefCell<Option<mpsc::Receiver<Job>>>,
     tx: mpsc::Sender<Job>,
 }
 
@@ -31,10 +33,10 @@ impl Scheduler {
         let (tx, rx) =
             mpsc::channel::<Job>(SETTINGS.read().unwrap().get("scheduler.input_queue_size")?);
         Ok(Scheduler {
-            broker,
-            store,
-            rx,
-            tx,
+            broker: broker,
+            store: store,
+            rx: RefCell::new(Some(rx)),
+            tx: tx,
         })
     }
 
@@ -58,9 +60,13 @@ impl Scheduler {
 
     pub fn run<'a>(&'a self) -> impl Future<Item = (), Error = Error> + 'a {
         self.rx
+            .borrow_mut()
+            .take()
+            .unwrap()
             .map_err(|_| unreachable!("should never happen"))
             .for_each(move |job| self.process_job(job))
             .map_err(|_| SchedulerError::RxFailure.into())
+        // future::ok(())
     }
 
     fn process_job<'a>(&'a self, job: Job) -> impl Future<Item = (), Error = Error> + 'a {
