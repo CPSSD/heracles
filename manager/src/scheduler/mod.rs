@@ -20,7 +20,7 @@ use settings::SETTINGS;
 pub struct Scheduler {
     broker: Box<BrokerConnection + Send + Sync>,
     store: Box<State + Send + Sync>,
-    rx: RefCell<Option<mpsc::Receiver<Job>>>,
+    rx: Option<mpsc::Receiver<Job>>,
     tx: mpsc::Sender<Job>,
 }
 
@@ -35,7 +35,7 @@ impl Scheduler {
         Ok(Scheduler {
             broker: broker,
             store: store,
-            rx: RefCell::new(Some(rx)),
+            rx: Some(rx),
             tx: tx,
         })
     }
@@ -58,9 +58,8 @@ impl Scheduler {
         unimplemented!()
     }
 
-    pub fn run<'a>(&'a self) -> impl Future<Item = (), Error = Error> + 'a {
+    pub fn run<'a>(&'a mut self) -> impl Future<Item = (), Error = Error> + 'a {
         self.rx
-            .borrow_mut()
             .take()
             .unwrap()
             .map_err(|_| unreachable!("should never happen"))
