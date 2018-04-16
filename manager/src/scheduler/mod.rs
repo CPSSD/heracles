@@ -125,6 +125,19 @@ impl Scheduler {
     }
 }
 
+// fn run_tasks(tasks: Vec<Task>) -> impl Future<Item = (), Error = Error> {
+//     // Normally we would do `.into_iter()` on the task, but it looks like there is a problem
+//     // with it currently. This issue describes the error we are having:
+//     //      https://github.com/rust-lang/rust/issues/49926
+//     let mut task_futures = vec![];
+//     for mut task in tasks {
+//         task_futures.push(self.process_task(task.clone()));
+//     }
+//     future::join_all(task_futures).and_then(|_| future::ok(()))
+// }
+
+// fn process_task()
+
 #[derive(Debug, Fail)]
 pub enum SchedulerError {
     #[fail(display = "failed to split job into map tasks")]

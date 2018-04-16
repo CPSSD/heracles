@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 use lapin::channel::{BasicProperties, BasicPublishOptions, Channel, QueueDeclareOptions};
 use lapin::client::{Client, ConnectionOptions};
@@ -11,7 +12,7 @@ use super::*;
 use settings::SETTINGS;
 
 pub struct AMQPBrokerConnection {
-    channel: Channel<TcpStream>,
+    channel: Arc<Channel<TcpStream>>,
     queue_name: String,
 }
 
@@ -27,6 +28,7 @@ impl BrokerConnection for AMQPBrokerConnection {
             .from_err()
             .and_then(move |bytes| {
                 self.channel
+                    .clone()
                     .basic_publish(
                         "",
                         &self.queue_name,
@@ -61,7 +63,7 @@ pub fn connect(addr: SocketAddr) -> impl Future<Item = AMQPBrokerConnection, Err
         .map_err(|e| e.context(BrokerError::ConnectionFailed).into())
         .and_then(move |channel| {
             future::ok(AMQPBrokerConnection {
-                channel,
+                channel: Arc::new(channel),
                 queue_name: queue_name.to_string(),
             })
         })
