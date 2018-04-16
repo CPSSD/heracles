@@ -76,6 +76,8 @@ impl Scheduler {
         let job1 = job.clone();
         let job2 = job.clone();
         let job3 = job.clone();
+
+        let store = self.store.clone();
         lazy(|| done(splitting::map::split(&job1)))
             .and_then(|tasks| self.run_tasks(tasks))
             .and_then(|_| future::ok(splitting::reduce::split(&job2)))
@@ -83,7 +85,7 @@ impl Scheduler {
             .and_then(|_| {
                 // mark job as done
 
-                self.store.save_job(&job3);
+                store.save_job(&job3);
                 future::ok(())
             })
     }
@@ -102,7 +104,9 @@ impl Scheduler {
     fn process_task(&self, mut task: Task) -> impl Future<Item = (), Error = Error> + 'static {
         task.set_time_started(Utc::now().timestamp() as u64);
         task.set_status(TaskStatus::TASK_IN_PROGRESS);
-        self.store.save_task(&task);
+
+        let store = self.store.clone();
+        store.save_task(&task);
 
         self.broker.send(task.clone())
             // .map_err(|e| e.context(SchedulerError::BrokerSendFailure))
@@ -119,7 +123,7 @@ impl Scheduler {
                     panic!("ack of task failed. this should not happen");
                 }
                 task.set_time_done(Utc::now().timestamp() as u64);
-                self.store.save_task(&task);
+                store.save_task(&task);
                 future::ok(())
             })
     }
