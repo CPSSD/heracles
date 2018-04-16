@@ -47,7 +47,7 @@ impl Scheduler {
         job.set_id(id.clone());
         // TODO: Scheduling time
 
-        self.store.save_job(&job.clone());
+        self.store.save_job(&job.clone()).unwrap();
 
         self.tx.clone().send(job.clone());
 
@@ -66,8 +66,7 @@ impl Scheduler {
             .unwrap()
             .map_err(|_| unreachable!("should never happen"))
             .for_each(move |job| self.process_job(job))
-            .map_err(|_| SchedulerError::RxFailure.into())
-        // future::ok(())
+            .map_err(|_| panic!("should not happen"))
     }
 
     fn process_job<'a>(&'a self, job: Job) -> impl Future<Item = (), Error = Error> + 'a {

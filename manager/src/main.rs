@@ -38,7 +38,7 @@ fn run() -> Result<(), Error> {
 
     let schdlr = scheduler::Scheduler::new(Arc::new(broker_conn), Arc::new(store))?;
 
-    let srv = server::Server::new(schdlr)?;
+    server::Server::new(schdlr)?;
 
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other

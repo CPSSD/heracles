@@ -74,7 +74,7 @@ fn set_defaults(settings: &mut Config) -> Result<(), Error> {
     settings.set_default("scheduler.input_queue_size", 4)?;
     settings.set_default("server.port", 8081)?;
     settings.set_default("server.thread_pool_size", 8)?;
-    settings.set_default("state.location", "/tmp");
+    settings.set_default("state.location", "/tmp")?;
     Ok(())
 }
 
