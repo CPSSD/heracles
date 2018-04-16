@@ -23,7 +23,9 @@ impl grpc_pb::JobScheduleService for JobScheduleService {
         _: RequestOptions,
         req: pb::ScheduleRequest,
     ) -> SingleResponse<pb::ScheduleResponse> {
-        match self.scheduler.schedule(req.get_job().clone()) {
+        let scheduler = self.scheduler.clone();
+
+        match scheduler.schedule(req.get_job().clone()) {
             Ok(job_id) => {
                 let mut res = pb::ScheduleResponse::new();
                 res.set_job_id(job_id);
@@ -41,7 +43,9 @@ impl grpc_pb::JobScheduleService for JobScheduleService {
         _: RequestOptions,
         req: pb::CancelRequest,
     ) -> SingleResponse<pb::EmptyMessage> {
-        match self.scheduler.cancel(req.get_job_id()) {
+        let scheduler = self.scheduler.clone();
+
+        match scheduler.cancel(req.get_job_id()) {
             Ok(_) => {
                 return SingleResponse::completed(pb::EmptyMessage::new());
             }

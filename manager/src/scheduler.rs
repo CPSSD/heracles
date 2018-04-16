@@ -61,17 +61,19 @@ impl Scheduler {
         unimplemented!()
     }
 
-    pub fn run(self) -> impl Future<Item = (), Error = ()> {
+    pub fn run(self) -> impl Future<Item = (), Error = ()> + 'static{
         let sch = self.clone();
+        let sch1 = sch.clone();
 
-        sch.rx
-            .clone()
+        let rx = sch.rx.clone();
+
+        rx
             .lock()
             .unwrap()
             .take()
             .unwrap()
             .map_err(|_| unreachable!("should never happen"))
-            .for_each(|job| sch.process_job(job))
+            .for_each(|job| sch1.process_job(job))
             .map_err(|_| panic!("should not happen"))
     }
 
@@ -83,11 +85,14 @@ impl Scheduler {
         let job2 = job.clone();
         let job3 = job.clone();
 
+        let sch1 = sch.clone();
+        let sch2 = sch.clone();
+
         let store = sch.store.clone();
         lazy(move || done(splitting::map::split(&job1)))
-            .and_then(move |tasks| sch.clone().run_tasks(tasks))
+            .and_then(move |tasks| sch1.run_tasks(tasks))
             .and_then(move |_| future::ok(splitting::reduce::split(&job2)))
-            .and_then(move |tasks| sch.clone().run_tasks(tasks))
+            .and_then(move |tasks| sch2.run_tasks(tasks))
             .and_then(move |_| {
                 // mark job as done
 
@@ -138,8 +143,6 @@ impl Scheduler {
             })
     }
 }
-
-impl Copy for Scheduler {}
 
 impl Clone for Scheduler {
     fn clone(&self) -> Scheduler {
