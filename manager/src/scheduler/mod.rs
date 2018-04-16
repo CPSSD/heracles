@@ -39,7 +39,7 @@ impl Scheduler {
         })
     }
 
-    pub fn schedule<'a>(&'a self, req: Job) -> Result<String, SchedulerError> {
+    pub fn schedule(&self, req: Job) -> Result<String, SchedulerError> {
         let mut job = req.clone();
 
         let id = Uuid::new_v4().to_string();
@@ -55,7 +55,7 @@ impl Scheduler {
         Ok(id)
     }
 
-    pub fn cancel<'a>(&'a self, _job_id: &str) -> Result<(), SchedulerError> {
+    pub fn cancel(&self, _job_id: &str) -> Result<(), SchedulerError> {
         unimplemented!()
     }
 
@@ -71,7 +71,7 @@ impl Scheduler {
             .map_err(|_| panic!("should not happen"))
     }
 
-    fn process_job<'a>(&'a self, job: Job) -> impl Future<Item = (), Error = Error> + 'a {
+    fn process_job(&self, job: Job) -> impl Future<Item = (), Error = Error> + 'static {
         // TODO: Refactor this ugly code. This should not be cloned so many times.
         let job1 = job.clone();
         let job2 = job.clone();
@@ -88,7 +88,7 @@ impl Scheduler {
             })
     }
 
-    fn run_tasks<'a>(&'a self, tasks: Vec<Task>) -> impl Future<Item = (), Error = Error> + 'a {
+    fn run_tasks(&self, tasks: Vec<Task>) -> impl Future<Item = (), Error = Error> + 'static {
         // Normally we would do `.into_iter()` on the task, but it looks like there is a problem
         // with it currently. This issue describes the error we are having:
         //      https://github.com/rust-lang/rust/issues/49926
@@ -99,7 +99,7 @@ impl Scheduler {
         future::join_all(task_futures).and_then(|_| future::ok(()))
     }
 
-    fn process_task<'a>(&'a self, mut task: Task) -> impl Future<Item = (), Error = Error> + 'a {
+    fn process_task(&self, mut task: Task) -> impl Future<Item = (), Error = Error> + 'static {
         task.set_time_started(Utc::now().timestamp() as u64);
         task.set_status(TaskStatus::TASK_IN_PROGRESS);
         self.store.save_task(&task);
