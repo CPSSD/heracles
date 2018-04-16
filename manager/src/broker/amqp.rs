@@ -23,20 +23,20 @@ impl BrokerConnection for AMQPBrokerConnection {
     /// (`Some(false)`), or the queue is not a confirm queue (`None`).
     fn send(&self, task: Task) -> Box<Future<Item = Option<bool>, Error = Error> + Send + 'static> {
         let task_id = task.get_id().to_string();
+        let ch = self.channel.clone();
+        let queue_name = &self.queue_name.clone();
+
         let ret = future::lazy(move || future::done(task.write_to_bytes()))
             .map_err(|e| e.context(BrokerError::TaskSerialisationFailure { task_id }))
             .from_err()
             .and_then(move |bytes| {
-                self.channel
-                    .clone()
-                    .basic_publish(
-                        "",
-                        &self.queue_name,
-                        &bytes,
-                        &BasicPublishOptions::default(),
-                        BasicProperties::default(),
-                    )
-                    .from_err()
+                ch.basic_publish(
+                    "",
+                    queue_name,
+                    &bytes,
+                    &BasicPublishOptions::default(),
+                    BasicProperties::default(),
+                ).from_err()
             });
         Box::new(ret)
     }
