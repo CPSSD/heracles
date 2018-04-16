@@ -2,6 +2,7 @@ mod jobscheduler;
 
 use std::fmt;
 use std::fmt::Display;
+use std::sync::Arc;
 
 use failure::*;
 use grpc;
@@ -16,7 +17,7 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new(scheduler: Scheduler) -> Result<Self, Error> {
+    pub fn new(scheduler: Arc<Scheduler>) -> Result<Self, Error> {
         let mut builder = grpc::ServerBuilder::new_plain();
         builder
             .http

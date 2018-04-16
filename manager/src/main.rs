@@ -36,9 +36,9 @@ fn run() -> Result<(), Error> {
     let state_location: &str = SETTINGS.read().unwrap().get("state.location")?;
     let store = state::FileStore::new(&PathBuf::from(state_location.to_string()))?;
 
-    let schdlr = scheduler::Scheduler::new(Arc::new(broker_conn), Arc::new(store))?;
+    let schdlr = Arc::new(scheduler::Scheduler::new(Arc::new(broker_conn), Arc::new(store))?);
 
-    server::Server::new(schdlr)?;
+    server::Server::new(Arc::clone(&schdlr))?;
 
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other

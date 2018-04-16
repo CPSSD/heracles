@@ -58,7 +58,7 @@ impl Scheduler {
         unimplemented!()
     }
 
-    pub fn run<'a>(&'a self) -> impl Future<Item = (), Error = Error> + 'a {
+    pub fn run<'a>(&'a self) -> impl Future<Item = (), Error = ()> + 'a {
         self.rx
             .lock()
             .unwrap()

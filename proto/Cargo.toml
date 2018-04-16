@@ -5,9 +5,8 @@ build = "build.rs"
 
 [dependencies]
 protobuf = "1.4.1"
-grpc = "0.2.1"
-grpc-rust = "0.1.0"
-tls-api = "0.1.10"
+grpc = "0.3.0"
+tls-api = "0.1.19"
 
 [build-dependencies]
-protoc-rust-grpc = "0.2.1"
+protoc-rust-grpc = "0.3.0"

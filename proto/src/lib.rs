@@ -1,5 +1,4 @@
 extern crate grpc;
-extern crate grpc_rust;
 extern crate protobuf;
 extern crate tls_api;
 

@@ -20,7 +20,7 @@ impl BrokerConnection for AMQPBrokerConnection {
     ///
     /// The `Option<bool>` returned represents whether the message was acked (`Some(true)`), nacked
     /// (`Some(false)`), or the queue is not a confirm queue (`None`).
-    fn send<'a>(&'a self, task: Task) -> Box<Future<Item = Option<bool>, Error = Error> + 'a> {
+    fn send<'a>(&'a self, task: Task) -> Box<Future<Item = Option<bool>, Error = Error> + Send + 'a> {
         let task_id = task.get_id().to_string();
         let ret = future::lazy(move || future::done(task.write_to_bytes()))
             .map_err(|e| e.context(BrokerError::TaskSerialisationFailure { task_id }))
