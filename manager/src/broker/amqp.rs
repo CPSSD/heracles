@@ -13,7 +13,6 @@ use settings::SETTINGS;
 
 pub struct AMQPBrokerConnection {
     channel: Arc<Channel<TcpStream>>,
-    queue_name: String,
 }
 
 impl BrokerConnection for AMQPBrokerConnection {
@@ -24,7 +23,7 @@ impl BrokerConnection for AMQPBrokerConnection {
     fn send(&self, task: Task) -> Box<Future<Item = Option<bool>, Error = Error> + Send + 'static> {
         let task_id = task.get_id().to_string();
         let ch = self.channel.clone();
-        let queue_name = &self.queue_name.clone();
+        let queue_name: &str = SETTINGS.read().unwrap().get("broker.queue_name").unwrap();
 
         let ret = future::lazy(move || future::done(task.write_to_bytes()))
             .map_err(|e| e.context(BrokerError::TaskSerialisationFailure { task_id }))
@@ -32,7 +31,7 @@ impl BrokerConnection for AMQPBrokerConnection {
             .and_then(move |bytes| {
                 ch.basic_publish(
                     "",
-                    queue_name,
+                    &queue_name,
                     &bytes,
                     &BasicPublishOptions::default(),
                     BasicProperties::default(),
@@ -43,7 +42,7 @@ impl BrokerConnection for AMQPBrokerConnection {
 }
 
 pub fn connect(addr: SocketAddr) -> impl Future<Item = AMQPBrokerConnection, Error = Error> {
-    let queue_name = SETTINGS.read().unwrap().get("broker_queue_name").unwrap();
+    let queue_name: &str = SETTINGS.read().unwrap().get("broker.queue_name").unwrap();
     let queue_options = QueueDeclareOptions {
         durable: true,
         ..Default::default()
@@ -54,9 +53,9 @@ pub fn connect(addr: SocketAddr) -> impl Future<Item = AMQPBrokerConnection, Err
         .and_then(|(client, _)| client.create_channel())
         .and_then(move |channel| {
             channel
-                .queue_declare(queue_name, &queue_options, &FieldTable::new())
+                .queue_declare(&queue_name, &queue_options, &FieldTable::new())
                 .and_then(move |_| {
-                    info!("AMQP queue `{}` successfully declared.", queue_name);
+                    info!("AMQP queue `{}` successfully declared.", queue_name.to_string());
                     future::ok(channel)
                 })
         })
@@ -64,7 +63,6 @@ pub fn connect(addr: SocketAddr) -> impl Future<Item = AMQPBrokerConnection, Err
         .and_then(move |channel| {
             future::ok(AMQPBrokerConnection {
                 channel: Arc::new(channel),
-                queue_name: queue_name.to_string(),
             })
         })
 }
