@@ -16,7 +16,6 @@ use settings::SETTINGS;
 
 /// Manages the entire data pipeline of the manager and links together all of the manager's
 /// components.
-#[derive(Clone)]
 pub struct Scheduler {
     broker: Arc<BrokerConnection + Sync + Send>,
     store: Arc<State + Sync + Send>,
@@ -86,9 +85,9 @@ impl Scheduler {
 
         let store = sch.store.clone();
         lazy(move || done(splitting::map::split(&job1)))
-            .and_then(move |tasks| sch.run_tasks(tasks))
+            .and_then(move |tasks| sch.clone().run_tasks(tasks))
             .and_then(move |_| future::ok(splitting::reduce::split(&job2)))
-            .and_then(move |tasks| sch.run_tasks(tasks))
+            .and_then(move |tasks| sch.clone().run_tasks(tasks))
             .and_then(move |_| {
                 // mark job as done
 
@@ -137,6 +136,19 @@ impl Scheduler {
                 store.save_task(&task);
                 future::ok(())
             })
+    }
+}
+
+impl Copy for Scheduler {}
+
+impl Clone for Scheduler {
+    fn clone(&self) -> Scheduler {
+        Scheduler{
+            broker: self.broker.clone(),
+            store: self.store.clone(),
+            rx: self.rx.clone(),
+            tx: self.tx.clone(),
+        }
     }
 }
 
