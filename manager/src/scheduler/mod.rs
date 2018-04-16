@@ -59,8 +59,9 @@ impl Scheduler {
         unimplemented!()
     }
 
-    pub fn run(&'static self) -> impl Future<Item = (), Error = ()> + 'static {
+    pub fn run(&self) -> impl Future<Item = (), Error = ()> {
         self.rx
+            .clone()
             .lock()
             .unwrap()
             .take()
