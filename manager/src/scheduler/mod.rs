@@ -1,6 +1,6 @@
 //! Module containing the `Scheduler`, a struct which manages the pipeline of the manager and links
 //! all of the other components together.
-use std::cell::RefCell;
+use std::sync::{Mutex, Arc};
 
 use chrono::Utc;
 use failure::*;
@@ -20,7 +20,7 @@ use settings::SETTINGS;
 pub struct Scheduler {
     broker: Box<BrokerConnection + Send + Sync>,
     store: Box<State + Send + Sync>,
-    rx: Option<mpsc::Receiver<Job>>,
+    rx: Arc<Mutex<Option<mpsc::Receiver<Job>>>>,
     tx: mpsc::Sender<Job>,
 }
 
@@ -35,7 +35,7 @@ impl Scheduler {
         Ok(Scheduler {
             broker: broker,
             store: store,
-            rx: Some(rx),
+            rx: Arc::new(Mutex::new(Some(rx))),
             tx: tx,
         })
     }
@@ -58,8 +58,10 @@ impl Scheduler {
         unimplemented!()
     }
 
-    pub fn run<'a>(&'a mut self) -> impl Future<Item = (), Error = Error> + 'a {
+    pub fn run<'a>(&'a self) -> impl Future<Item = (), Error = Error> + 'a {
         self.rx
+            .lock()
+            .unwrap()
             .take()
             .unwrap()
             .map_err(|_| unreachable!("should never happen"))

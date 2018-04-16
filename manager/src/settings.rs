@@ -56,7 +56,7 @@ fn set_options<'a>(settings: &mut Config, opts: &ArgMatches<'a>) -> Result<(), E
             .context(SettingsErrorKind::OptionParseFailed)?;
         settings.set("scheduler.input_queue_size", v)?;
     }
-    if let Some(value) = opts.value_of("server_port") {
+    if let Some(value) = opts.value_of("server.port") {
         let v = value
             .parse::<i64>()
             .context(SettingsErrorKind::OptionParseFailed)?;
@@ -74,6 +74,7 @@ fn set_defaults(settings: &mut Config) -> Result<(), Error> {
     settings.set_default("scheduler.input_queue_size", 4)?;
     settings.set_default("server.port", 8081)?;
     settings.set_default("server.thread_pool_size", 8)?;
+    settings.set_default("state.location", "/tmp");
     Ok(())
 }
 

@@ -29,12 +29,13 @@ fn run() -> Result<(), Error> {
     let arg_matches = optparse::parse_cmd_options();
     settings::init(&arg_matches)?;
 
-    let broker_addr = SETTINGS.read().unwrap().get("broker_address")?;
+    let broker_addr = SETTINGS.read().unwrap().get("broker.address")?;
     let broker_conn = broker::amqp::connect(broker_addr);
 
-    // let store = state::FileStore::new(PathBuf::from_str("/tmp"))?; // replace with settings
+    let state_location: &str = SETTINGS.read().unwrap().get("state.location")?;
+    let store = state::FileStore::new(&PathBuf::from(state_location.to_string()))?;
 
-    // let schdlr = scheduler::Scheduler::new(Box::new(broker_conn), Box::new(store))?;
+    let schdlr = scheduler::Scheduler::new(Box::new(broker_conn), Box::new(store))?;
 
     // let srv = server::Server::new(schdlr)?;
 
@@ -42,7 +43,7 @@ fn run() -> Result<(), Error> {
     // We give this an empty future so that it will never terminate and continue driving other
     // futures to completion.
     // tokio::run(schdlr.run());
-    tokio::run(futures::empty());
+    tokio::run(future::empty());
     Ok(())
 }
 
