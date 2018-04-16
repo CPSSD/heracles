@@ -67,7 +67,7 @@ impl Scheduler {
             .take()
             .unwrap()
             .map_err(|_| unreachable!("should never happen"))
-            .for_each(move |job| self.process_job(job))
+            .for_each(|job| self.process_job(job))
             .map_err(|_| panic!("should not happen"))
     }
 
@@ -76,11 +76,11 @@ impl Scheduler {
         let job1 = job.clone();
         let job2 = job.clone();
         let job3 = job.clone();
-        lazy(move || done(splitting::map::split(&job1)))
-            .and_then(move |tasks| self.run_tasks(tasks))
-            .and_then(move |_| future::ok(splitting::reduce::split(&job2)))
-            .and_then(move |tasks| self.run_tasks(tasks))
-            .and_then(move |_| {
+        lazy(|| done(splitting::map::split(&job1)))
+            .and_then(|tasks| self.run_tasks(tasks))
+            .and_then(|_| future::ok(splitting::reduce::split(&job2)))
+            .and_then(|tasks| self.run_tasks(tasks))
+            .and_then(|_| {
                 // mark job as done
 
                 self.store.save_job(&job3);
@@ -107,7 +107,7 @@ impl Scheduler {
         self.broker.send(task.clone())
             // .map_err(|e| e.context(SchedulerError::BrokerSendFailure))
             // .from_err()
-            .and_then(move |ack| {
+            .and_then(|ack| {
                 if let Some(completed) = ack {
                     if completed {
                         task.set_status(TaskStatus::TASK_DONE);
