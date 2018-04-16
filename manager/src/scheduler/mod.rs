@@ -18,8 +18,8 @@ use settings::SETTINGS;
 /// Manages the entire data pipeline of the manager and links together all of the manager's
 /// components.
 pub struct Scheduler {
-    broker: Box<BrokerConnection + Send + Sync>,
-    store: Box<State + Send + Sync>,
+    broker: Arc<BrokerConnection + Sync + Send>,
+    store: Arc<State + Sync + Send>,
     rx: Arc<Mutex<Option<mpsc::Receiver<Job>>>>,
     tx: mpsc::Sender<Job>,
 }
@@ -29,7 +29,7 @@ impl Scheduler {
     ///
     /// Takes a handle to a [`heracles_manager_lib::broker::Broker`] which it uses to send
     /// [`Task`]s to workers for execution.
-    pub fn new(broker: Box<BrokerConnection + Send + Sync>, store: Box<State + Send + Sync>) -> Result<Self, Error> {
+    pub fn new(broker: Arc<BrokerConnection + Send + Sync>, store: Arc<State + Send + Sync>) -> Result<Self, Error> {
         let (tx, rx) =
             mpsc::channel::<Job>(SETTINGS.read().unwrap().get("scheduler.input_queue_size")?);
         Ok(Scheduler {

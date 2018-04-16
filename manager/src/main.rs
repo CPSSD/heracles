@@ -13,6 +13,7 @@ use heracles_manager::settings::SETTINGS;
 use heracles_manager::{broker, optparse, scheduler, server, state, settings};
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
 fn main() {
     if let Err(err) = run() {
@@ -30,20 +31,20 @@ fn run() -> Result<(), Error> {
     settings::init(&arg_matches)?;
 
     let broker_addr = SETTINGS.read().unwrap().get("broker.address")?;
-    let broker_conn = broker::amqp::connect(broker_addr);
+    let broker_conn = broker::amqp::connect(broker_addr).wait()?;
 
     let state_location: &str = SETTINGS.read().unwrap().get("state.location")?;
     let store = state::FileStore::new(&PathBuf::from(state_location.to_string()))?;
 
-    let schdlr = scheduler::Scheduler::new(Box::new(broker_conn), Box::new(store))?;
+    let schdlr = scheduler::Scheduler::new(Arc::new(broker_conn), Arc::new(store))?;
 
-    // let srv = server::Server::new(schdlr)?;
+    let srv = server::Server::new(schdlr)?;
 
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other
     // futures to completion.
-    // tokio::run(schdlr.run());
-    tokio::run(future::empty());
+    tokio::run(schdlr.run());
+    // tokio::run(future::empty());
     Ok(())
 }
 
