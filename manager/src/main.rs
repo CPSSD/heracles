@@ -31,14 +31,14 @@ fn run() -> Result<(), Error> {
     settings::init(&arg_matches)?;
 
     let broker_addr = SETTINGS.read().unwrap().get("broker.address")?;
-    let broker_conn = broker::amqp::connect(broker_addr).wait()?;
+    let broker_conn = Arc::new(broker::amqp::connect(broker_addr).wait()?);
 
     let state_location: &str = SETTINGS.read().unwrap().get("state.location")?;
-    let store = state::FileStore::new(&PathBuf::from(state_location.to_string()))?;
+    let store = Arc::new(state::FileStore::new(&PathBuf::from(state_location.to_string()))?);
 
-    let schdlr = Arc::new(scheduler::Scheduler::new(Arc::new(broker_conn), Arc::new(store))?);
+    let schdlr = Arc::new(scheduler::Scheduler::new(broker_conn, store)?);
 
-    server::Server::new(Arc::clone(&schdlr))?;
+    server::Server::new(schdlr.clone())?;
 
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other

@@ -7,7 +7,6 @@ use failure::*;
 use futures::*;
 use futures::sync::mpsc;
 use uuid::Uuid;
-use tokio;
 
 use heracles_proto::datatypes::*;
 use splitting;
@@ -21,7 +20,7 @@ pub struct Scheduler {
     broker: Arc<BrokerConnection + Sync + Send>,
     store: Arc<State + Sync + Send>,
     rx: Arc<Mutex<Option<mpsc::Receiver<Job>>>>,
-    tx: mpsc::Sender<Job>,
+    tx: Arc<Mutex<Option<mpsc::Sender<Job>>>>,
 }
 
 impl Scheduler {
@@ -36,7 +35,7 @@ impl Scheduler {
             broker: broker,
             store: store,
             rx: Arc::new(Mutex::new(Some(rx))),
-            tx: tx,
+            tx: Arc::new(Mutex::new(Some(tx))),
         })
     }
 
@@ -49,7 +48,9 @@ impl Scheduler {
 
         self.store.save_job(&job.clone()).unwrap();
 
-        self.tx.clone().send(job.clone());
+        // self.tx.borrow_mut().take().unwrap().send(job.clone());
+
+        self.tx.lock().unwrap().take().unwrap().clone().send(job.clone());
 
         Ok(id)
     }
@@ -58,7 +59,7 @@ impl Scheduler {
         unimplemented!()
     }
 
-    pub fn run<'a>(&'a self) -> impl Future<Item = (), Error = ()> + 'a {
+    pub fn run(&'static self) -> impl Future<Item = (), Error = ()> + 'static {
         self.rx
             .lock()
             .unwrap()

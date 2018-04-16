@@ -41,11 +41,5 @@ Each chunk corresponds to one map task, so this can be used to scale the job.",
                 .long("server-port")
                 .takes_value(true),
         )
-        .arg(
-            Arg::with_name("broker_queue_name")
-                .help("The name to register with the broker for the task processing queue.")
-                .long("broker-queue-name")
-                .takes_value(true),
-        )
         .get_matches()
 }
