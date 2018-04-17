@@ -14,6 +14,7 @@ use heracles_manager::{broker, optparse, scheduler, server, state, settings};
 
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::thread;
 
 fn main() {
     if let Err(err) = run() {
@@ -33,12 +34,18 @@ fn run() -> Result<(), Error> {
     let broker_addr = SETTINGS.read().unwrap().get("broker.address")?;
     let broker_conn = Arc::new(broker::amqp::connect(broker_addr).wait()?);
 
-    let state_location: &str = SETTINGS.read().unwrap().get("state.location")?;
-    let store = Arc::new(state::FileStore::new(&PathBuf::from(state_location.to_string()))?);
+    let state_location: String = SETTINGS.read().unwrap().get("state.location")?;
+    let store = Arc::new(state::FileStore::new(&PathBuf::from(state_location))?);
 
     let schdlr = Arc::new(scheduler::Scheduler::new(broker_conn, store)?);
 
-    server::Server::new(schdlr.clone())?;
+    let srv = server::Server::new(schdlr.clone())?;
+
+    thread::spawn(move || {
+        loop {
+            srv.is_alive();
+        }
+    });
 
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other

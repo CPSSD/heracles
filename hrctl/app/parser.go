@@ -101,7 +101,7 @@ func schedule(c *cli.Context) error {
 		return errors.Wrap(err, "unable to get job from file")
 	}
 
-	conn, err := connect(c.String("manager"))
+	conn, err := connect(c.GlobalString("manager"))
 	if err != nil {
 		return errors.Wrap(err, "unable to connect to manager")
 	}
