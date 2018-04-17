@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::thread;
 
 use lapin::channel::{BasicProperties, BasicPublishOptions, Channel, QueueDeclareOptions};
 use lapin::client::{Client, ConnectionOptions};
@@ -7,6 +8,7 @@ use lapin::types::FieldTable;
 use protobuf::Message;
 use tokio::net::TcpStream;
 use tokio::prelude::*;
+use tokio;
 
 use super::*;
 use settings::SETTINGS;
@@ -29,6 +31,8 @@ impl BrokerConnection for AMQPBrokerConnection {
             .map_err(|e| e.context(BrokerError::TaskSerialisationFailure { task_id }))
             .from_err()
             .and_then(move |bytes| {
+                info!("publishing task");
+
                 ch.basic_publish(
                     "",
                     &queue_name.as_str(),
@@ -41,28 +45,69 @@ impl BrokerConnection for AMQPBrokerConnection {
     }
 }
 
-pub fn connect(addr: SocketAddr) -> impl Future<Item = AMQPBrokerConnection, Error = Error> {
+// pub fn connect(addr: SocketAddr) -> Result<AMQPBrokerConnection, Error> {
+//     let queue_name: String = SETTINGS.read().unwrap().get("broker.queue_name").unwrap();
+//     let queue_options = QueueDeclareOptions {
+//         durable: true,
+//         ..Default::default()
+//     };
+
+//     tokio::run(TcpStream::connect(&addr)
+//         .and_then(|stream| Client::connect(stream, &ConnectionOptions::default()))
+//         .and_then(|(client, _)| client.create_channel())
+//         .and_then(move |channel| {
+//             channel
+//                 .queue_declare(&queue_name.as_str(), &queue_options, &FieldTable::new())
+//                 .and_then(move |_| {
+//                     info!("AMQP queue `{}` successfully declared.", queue_name);
+//                     future::ok(channel)
+//                 })
+//         })
+//         .map_err(|e| e.context(BrokerError::ConnectionFailed).into())
+//         .and_then(move |channel| {
+//             AMQPBrokerConnection {
+//                 channel: Arc::new(channel),
+//             }
+//         }))
+// }
+
+
+pub fn connect(addr: SocketAddr) -> Result<AMQPBrokerConnection, Error> {
     let queue_name: String = SETTINGS.read().unwrap().get("broker.queue_name").unwrap();
     let queue_options = QueueDeclareOptions {
         durable: true,
         ..Default::default()
     };
 
-    TcpStream::connect(&addr)
+    // I assume this can't actually be here.
+    // let mut bc = AMQPBrokerConnection{
+    //     channel: Arc::new(),
+    // };
+
+    let broker_conn = TcpStream::connect(&addr)
         .and_then(|stream| Client::connect(stream, &ConnectionOptions::default()))
         .and_then(|(client, _)| client.create_channel())
         .and_then(move |channel| {
             channel
                 .queue_declare(&queue_name.as_str(), &queue_options, &FieldTable::new())
                 .and_then(move |_| {
-                    info!("AMQP queue `{}` successfully declared.", queue_name);
                     future::ok(channel)
                 })
         })
-        .map_err(|e| e.context(BrokerError::ConnectionFailed).into())
-        .and_then(move |channel| {
-            future::ok(AMQPBrokerConnection {
-                channel: Arc::new(channel),
-            })
-        })
+        // .map_err(|e| e.context(BrokerError::ConnectionFailed).into())
+        .map_err(|e| error!("{}", e))
+        .and_then(|channel| {
+            // Add the channel to the broker connection
+            // bc.channel = Arc::new(channel);
+            future::ok(())
+        });
+
+    // This is definatelly bad, but we can't just do run because it will block
+    thread::spawn(move || {
+        tokio::run(broker_conn);
+    });
+
+    Ok(AMQPBrokerConnection{
+        channel: Arc::new(broker_conn),
+    })
 }

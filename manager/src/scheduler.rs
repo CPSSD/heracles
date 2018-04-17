@@ -7,6 +7,7 @@ use failure::*;
 use futures::*;
 use futures::sync::mpsc;
 use uuid::Uuid;
+use futures::Future;
 
 use heracles_proto::datatypes::*;
 use splitting;
@@ -18,6 +19,7 @@ use settings::SETTINGS;
 /// components.
 #[derive(Clone)]
 pub struct Scheduler {
+    // broker: Arc<BrokerConnection + Sync + Send>,
     broker: Arc<BrokerConnection + Sync + Send>,
     store: Arc<State + Sync + Send>,
     rx: Arc<Mutex<Option<mpsc::Receiver<Job>>>>,
@@ -30,6 +32,9 @@ impl Scheduler {
     /// Takes a handle to a [`heracles_manager_lib::broker::Broker`] which it uses to send
     /// [`Task`]s to workers for execution.
     pub fn new(broker: Arc<BrokerConnection + Send + Sync>, store: Arc<State + Send + Sync>) -> Result<Self, Error> {
+    // pub fn new<B: ?Sized>(broker: &mut B, store: Arc<State + Send + Sync>) -> Result<Self, Error>
+    //     where B: IntoFuture<Item=BrokerConnection, Error=Error>
+    // {
         let (tx, rx) =
             mpsc::channel::<Job>(SETTINGS.read().unwrap().get("scheduler.input_queue_size")?);
         Ok(Scheduler {
@@ -62,14 +67,18 @@ impl Scheduler {
         unimplemented!()
     }
 
+    // pub fn run<B>(&self, broker: B) -> impl Future<Item = (), Error = ()> + 'static
+    //     where B: IntoFuture<Item=BrokerConnection, Error=Error>
+    // {
     pub fn run(&self) -> impl Future<Item = (), Error = ()> + 'static {
         let sch = self.clone();
 
-        // let rx = sch.rx.clone().to_owned();
-        self.rx.lock().unwrap().take().unwrap()
-            .map_err(|_| unreachable!("should never happen"))
-            .for_each(move |job| process_job(job, sch.clone().broker.clone(), sch.clone().store.clone()))
-            .map_err(|e| error!("{}", e))
+        // broker.and_then(|bc| {
+            self.rx.lock().unwrap().take().unwrap()
+                    .map_err(|_| unreachable!("should never happen"))
+                    .for_each(move |job| process_job(job, sch.clone().broker.clone(), sch.clone().store.clone()))
+                    .map_err(|e| error!("{}", e))
+        // })
     }
 }
 

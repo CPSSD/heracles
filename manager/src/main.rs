@@ -32,7 +32,7 @@ fn run() -> Result<(), Error> {
     settings::init(&arg_matches)?;
 
     let broker_addr = SETTINGS.read().unwrap().get("broker.address")?;
-    let broker_conn = Arc::new(broker::amqp::connect(broker_addr).wait()?);
+    let broker_conn = Arc::new(broker::amqp::connect(broker_addr)?);
 
     let state_location: String = SETTINGS.read().unwrap().get("state.location")?;
     let store = Arc::new(state::FileStore::new(&PathBuf::from(state_location))?);
@@ -47,11 +47,15 @@ fn run() -> Result<(), Error> {
         }
     });
 
+    // thread::spawn(move || {
+    //     tokio::spawn(broker_conn.channel.clone());
+    // });
+
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other
     // futures to completion.
     tokio::run(schdlr.run());
-    // tokio::run(future::empty());
+    // tokio::run(schdl.run(broker_conn))
     Ok(())
 }
 
