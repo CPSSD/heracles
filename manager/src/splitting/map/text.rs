@@ -56,7 +56,7 @@ impl LineSplitter {
         let reader = BufReader::new(f);
         let mut amount_read_this_chunk: u64 = 0;
         let mut chunk_start_index: u64 = 0;
-        let task_input_size: u64 = SETTINGS.read().unwrap().get("task_input_size")?;
+        let task_input_size: u64 = SETTINGS.read().unwrap().get("scheduler.input_chunk_size")?;
 
         for line in reader.lines() {
             let line = line.context(SplitterErrorKind::FileReadFailed)?;
