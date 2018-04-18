@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	log "github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -30,6 +31,7 @@ func sanityCheck(payloadPath string) error {
 // mapReader takes in the input chunk and packages it up to map compabible
 // input format.
 func mapReader(in *datatypes.InputChunk) (io.Reader, error) {
+	log.V(2).Infof("Loading map input chunk %+v", in)
 	start := in.GetStartByte()
 	end := in.GetEndByte()
 
@@ -72,25 +74,30 @@ type reducerInput []reducerKVs
 
 func reduceReader(in *datatypes.InputChunk) (io.Reader, error) {
 	// we can assume that the whole input is for the reducer, so we just ignore
-	// the start and end bytes
-	f, err := os.Open(in.GetPath())
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to open input file")
-	}
-
-	buf, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to read input data")
-	}
-
-	kvs := []kv{}
-	if err := json.Unmarshal(buf, &kvs); err != nil {
-		return nil, errors.Wrap(err, "unable to parse JSON")
-	}
+	// the start and end bytes. For now we are using the comma separated path
+	// for the worker until there is a merger for intermediata data.
 
 	tmp := make(map[string][]interface{})
-	for _, kv := range kvs {
-		tmp[kv.Key] = append(tmp[kv.Key], kv.Value)
+
+	for _, inFile := range strings.Split(in.GetPath(), ",") {
+		f, err := os.Open(inFile)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to open input file")
+		}
+
+		buf, err := ioutil.ReadAll(f)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to read input data")
+		}
+
+		kvs := []kv{}
+		if err := json.Unmarshal(buf, &kvs); err != nil {
+			return nil, errors.Wrap(err, "unable to parse JSON")
+		}
+
+		for _, kv := range kvs {
+			tmp[kv.Key] = append(tmp[kv.Key], kv.Value)
+		}
 	}
 
 	data := reducerInput{}

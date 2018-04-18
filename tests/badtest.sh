@@ -2,7 +2,7 @@
 
 docker kill rabbit
 docker rm rabbit
-docker run -d --hostname=rabbit --name=rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+docker run --rm -d --hostname=rabbit --name=rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management
 sleep 10
 go run ../tools/tester/tester.go
 mkdir -p /tmp/heracles_test_jobs/jobs/test_job/tasks

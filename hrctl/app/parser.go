@@ -101,7 +101,7 @@ func schedule(c *cli.Context) error {
 		return errors.Wrap(err, "unable to get job from file")
 	}
 
-	conn, err := connect(c.String("manager"))
+	conn, err := connect(c.GlobalString("manager"))
 	if err != nil {
 		return errors.Wrap(err, "unable to connect to manager")
 	}
@@ -110,7 +110,7 @@ func schedule(c *cli.Context) error {
 }
 
 func cancel(c *cli.Context) error {
-	conn, err := connect(c.String("manager"))
+	conn, err := connect(c.GlobalString("manager"))
 	if err != nil {
 		return errors.Wrap(err, "unable to connect to manager")
 	}
@@ -142,7 +142,7 @@ func describeQueue(c *cli.Context) error {
 }
 
 func describeJobs(c *cli.Context) error {
-	conn, err := connect(c.String("manager"))
+	conn, err := connect(c.GlobalString("manager"))
 	if err != nil {
 		return errors.Wrap(err, "unable to connect to manager")
 	}
@@ -151,7 +151,7 @@ func describeJobs(c *cli.Context) error {
 }
 
 func describeTasks(c *cli.Context) error {
-	conn, err := connect(c.String("manager"))
+	conn, err := connect(c.GlobalString("manager"))
 	if err != nil {
 		return errors.Wrap(err, "unable to connect to manager")
 	}
