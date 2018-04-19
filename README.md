@@ -43,20 +43,20 @@ $ make go-build
 
 ---
 
-## Running benchmarks
+## Running
 
-The following is required to run the benchmarking script:
-```
-apt-get install python3-pip python3-tk
-pip3 install numpy matplotlib
-```
+To run the project, please run:
+- `dep ensure` to download all Go dependencies
+- `cargo build --all --examples` to build a demo example
+- Make sure docker is running, or optionally run your own RabbitMQ
 
-Run the benchmarking script with:
-```
-python3 benchmarks.py
-```
+Run `tools/demo.sh` to setup the testing directory. If you use your own
+RabbitMQ remove the first lines regarding docker.
 
----
+There are convenience bash scripts located in `tools/` which will guide you
+through the required flags for manager (manager-fallback), worker and the
+hrctl CLI tool.
 
 ## System Requirements
-The project currently only works on Linux. macOS and other platforms are planned for the future.
+The system was tested on Linux only. There are no guarantees it works or even
+compiles on other systems.
