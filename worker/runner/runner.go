@@ -59,6 +59,7 @@ func (r Runner) Run() error {
 				log.Warningf("unable to succeed task: %v", err)
 			}
 		}(task)
+		log.V(2).Info("Finished handing task")
 	}
 
 	log.V(1).Info("waiting for all tasks to finish")

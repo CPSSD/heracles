@@ -51,5 +51,6 @@ go-proto:
 	cd proto && make
 
 go-build: go-proto
+	go build -o ./target/debug/manager-fallback manager-fallback/manager.go
 	go build -o ./target/debug/worker worker/worker.go
 	go build -o ./target/debug/hrctl hrctl/hrctl.go

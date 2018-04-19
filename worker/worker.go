@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/golang/glog"
+	// log "github.com/golang/glog"
 	"github.com/pkg/errors"
 
 	"github.com/cpssd/heracles/worker/broker"
@@ -24,7 +24,7 @@ func run() error {
 		return errors.Wrap(err, "unable to initialize settings")
 	}
 
-	log.Info("starting heracles worker")
+	// glog.Info("starting heracles worker")
 
 	st, err := state.New()
 	if err != nil {
@@ -36,18 +36,17 @@ func run() error {
 	}
 
 	// TODO: We  probably might want to recover instead.
-	waitUntilListening := make(chan bool)
-	defer close(waitUntilListening)
+	waitUntilListening := make(chan struct{})
 	go func() {
-		waitUntilListening <- true
+		close(waitUntilListening)
 		if err := br.Listen(); err != nil {
-			log.Fatalf("unable to listen to broker: %v", err)
+			// log.Fatalf("unable to listen to broker: %v", err)
 		}
 		return
 	}()
 	<-waitUntilListening
 
-	log.Info("starting runner")
+	// log.Info("starting runner")
 
 	// Run starts listening and holds.
 	if err := runner.New(st, br).Run(); err != nil {
