@@ -1,0 +1,29 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "datatypes_proto",
+    srcs = ["datatypes.proto"],
+)
+
+proto_library(
+    name = "mapreduce_proto",
+    srcs = ["mapreduce.proto"],
+    deps = [":datatypes_proto"],
+)
+
+go_proto_library(
+    name = "datatypes_go_proto",
+    importpath = "github.com/cpssd/heracles/proto/datatypes",
+    proto = ":datatypes_proto",
+)
+
+go_proto_library(
+    name = "mapreduce_go_proto",
+    importpath = "github.com/cpssd/heracles/proto/mapreduce",
+    proto = ":mapreduce_proto",
+    deps = [":datatypes_go_proto"],
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+)
+

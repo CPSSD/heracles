@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_binary(
+    name = "hrctl",
+    srcs = ["hrctl.go"],
+    deps = [":app"],
+    visibility = ["//visibility:public"],
+    pure = "on",
+    static = "on",
+)
+
+go_library(
+    name = "app",
+    srcs = [
+        "app/app.go",
+        "app/parser.go",
+        "app/runner.go",
+    ],
+    deps = [
+        "//proto:datatypes_go_proto",
+        "//proto:mapreduce_go_proto",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@com_github_urfave_cli//:go_default_library",
+        "@com_github_olekukonko_tablewriter//:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/hrctl/app"
+)

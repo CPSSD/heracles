@@ -12,7 +12,7 @@ release:
 
 clean:
 	cargo clean
-	
+
 #############################################################
 
 # Runs all the tests
@@ -47,8 +47,21 @@ clean-all: clean-docker clean
 
 #############################################################
 
-go-proto:
-	cd proto && make
+go-proto-deps:
+	go get -v github.com/golang/protobuf/proto
+	go get -v github.com/golang/protobuf/protoc-gen-go
+
+go-proto: go-proto-deps
+	@mkdir -p proto/datatypes proto/mapreduce
+	protoc proto/datatypes.proto --go_out=proto/datatypes
+
+	protoc proto/mapreduce.proto --go_out=plugins=grpc,Mproto/datatypes.proto=github.com/cpssd/heracles/proto/datatypes:proto/mapreduce
+
+	# This is a weird issue where the files are generated not where they are
+	# supposed to be.
+	mv proto/datatypes/proto/datatypes.pb.go proto/datatypes
+	mv proto/mapreduce/proto/mapreduce.pb.go proto/mapreduce
+	rmdir proto/datatypes/proto proto/mapreduce/proto
 
 go-build: go-proto
 	go build -o ./target/debug/manager-fallback manager-fallback/manager.go

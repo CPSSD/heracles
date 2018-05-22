@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package mapreduce;
 
-import "datatypes.proto";
+import "proto/datatypes.proto";
 
 // JobScheduleService adheres to API v2
 service JobScheduleService {

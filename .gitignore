@@ -43,3 +43,8 @@ legacy-proto/src/*
 
 # Go dependencies
 vendor/
+
+# Bazel files
+bazel-*
+!WORKSPACE
+!BUILD.bazel

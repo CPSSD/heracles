@@ -1,0 +1,111 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_binary(
+    name = "manager-fallback",
+    srcs = ["manager.go"],
+    deps = [
+        ":broker",
+        ":settings",
+        ":scheduler",
+        ":state",
+        ":server",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+    static = "on",
+    pure = "on",
+)
+
+go_library(
+    name = "broker",
+    srcs = [
+        "broker/amqp.go",
+        "broker/broker.go",
+    ],
+    deps = [
+        ":settings",
+        "//proto:datatypes_go_proto",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_streadway_amqp//:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/manager-fallback/broker",
+)
+
+go_library(
+    name = "settings",
+    srcs = ["settings/settings.go"],
+    deps = [
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_spf13_pflag//:go_default_library",
+        "@com_github_spf13_viper//:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/manager-fallback/settings",
+)
+
+go_library(
+    name = "scheduler",
+    srcs = ["scheduler/scheduler.go"],
+    deps = [
+        ":broker",
+        ":splitting",
+        ":state",
+        "//proto:datatypes_go_proto",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/manager-fallback/scheduler",
+)
+
+go_library(
+    name = "splitting",
+    srcs = [
+        "splitting/map.go",
+        "splitting/reduce.go",
+        "splitting/splitting.go",
+    ],
+    deps = [
+        ":settings",
+        "//proto:datatypes_go_proto",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/manager-fallback/splitting",
+)
+
+go_library(
+    name = "state",
+    srcs = [
+        "state/file.go",
+        "state/state.go",
+    ],
+    deps = [
+        ":settings",
+        "//proto:datatypes_go_proto",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_fsnotify_fsnotify//:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/manager-fallback/state",
+)
+
+go_library(
+    name = "server",
+    srcs = [
+        "server/server.go",
+        "server/jobschedule.go",
+    ],
+    deps = [
+        ":scheduler",
+        ":settings",
+        "//proto:mapreduce_go_proto",
+        "@com_github_pkg_errors//:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/manager-fallback/server",
+)
