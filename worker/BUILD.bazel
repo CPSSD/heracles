@@ -1,0 +1,96 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_binary(
+    name = "worker",
+    srcs = ["worker.go"],
+    deps = [
+        ":broker",
+        ":runner",
+        ":settings",
+        ":state",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+    static = "on",
+    pure = "on",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "broker",
+    srcs = [
+        "broker/amqp.go",
+        "broker/broker.go",
+    ],
+    deps = [
+        ":settings",
+        "//proto:datatypes_go_proto",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_streadway_amqp//:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/worker/broker",
+)
+
+go_test(
+    name = "broker_test",
+    srcs = ["broker/amqp_test.go"],
+    embed = [":broker"],
+)
+
+go_library(
+    name = "settings",
+    srcs = ["settings/settings.go"],
+    deps = [
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_spf13_pflag//:go_default_library",
+        "@com_github_spf13_viper//:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/worker/settings",
+)
+
+go_library(
+    name = "runner",
+    srcs = [
+        "runner/runner.go",
+        "runner/util.go",
+    ],
+    deps = [
+        ":broker",
+        ":state",
+        "//proto:datatypes_go_proto",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/worker/runner",
+)
+
+go_test(
+    name = "runner_test",
+    srcs = ["runner/runner_test.go"],
+    embed = [":runner"],
+)
+
+go_library(
+    name = "state",
+    srcs = [
+        "state/state.go",
+        "state/file.go",
+    ],
+    deps = [
+        ":settings",
+        "//proto:datatypes_go_proto",
+        "@com_github_pkg_errors//:go_default_library",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+    ],
+    importpath = "github.com/cpssd/heracles/worker/state",
+)
+
+go_test(
+    name = "state_test",
+    srcs = [
+        "state/file_test.go",
+    ],
+    embed = [":state"],
+)
