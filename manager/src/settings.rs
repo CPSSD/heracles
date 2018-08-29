@@ -10,6 +10,23 @@ use config;
 use config::Config;
 use failure::*;
 
+// #[derive(Debug, Deserialize)]
+// struct Scheduler {
+//     input_chunk_size: i64,
+//     input_queue_size: i64,
+// }
+
+// #[derive(Debug, Deserialize)]
+// struct Server {
+//     port: i64,
+// }
+
+// #[derive(Debug, Deserialize)]
+// struct Broker {
+//     address: String,
+//     queue_name: String,
+// }
+
 lazy_static! {
     pub static ref SETTINGS: RwLock<Config> = RwLock::new(Config::default());
 }
@@ -28,29 +45,35 @@ pub fn init<'a>(opts: &ArgMatches<'a>) -> Result<(), Error> {
     // priority.
     set_options(&mut settings, opts)?;
 
-    debug!(
-        "{:?}",
-        settings
-            .clone()
-            .try_into::<HashMap<String, String>>()
-            .unwrap()
-    );
+    // debug!(
+    //     "{:?}",
+    //     settings
+    //         .clone()
+    //         .try_into::<HashMap<String, String>>()
+    //         .unwrap()
+    // );
 
     Ok(())
 }
 
 /// Read through the command line arguments and assign settings from there.
 fn set_options<'a>(settings: &mut Config, opts: &ArgMatches<'a>) -> Result<(), Error> {
-    if let Some(value) = opts.value_of("input_chunk_size") {
+    if let Some(value) = opts.value_of("scheduler.input_chunk_size") {
         let v = value
             .parse::<i64>()
             .context(SettingsErrorKind::OptionParseFailed)?;
-        settings.set("input_chunk_size", v)?;
+        settings.set("scheduler.input_chunk_size", v)?;
     }
     if let Some(value) = opts.value_of("broker.address") {
         settings.set("broker.address", value)?;
     }
-    if let Some(value) = opts.value_of("server_port") {
+    if let Some(value) = opts.value_of("scheduler.input_queue_size") {
+        let v = value
+            .parse::<i64>()
+            .context(SettingsErrorKind::OptionParseFailed)?;
+        settings.set("scheduler.input_queue_size", v)?;
+    }
+    if let Some(value) = opts.value_of("server.port") {
         let v = value
             .parse::<i64>()
             .context(SettingsErrorKind::OptionParseFailed)?;
@@ -64,9 +87,11 @@ fn set_options<'a>(settings: &mut Config, opts: &ArgMatches<'a>) -> Result<(), E
 
 fn set_defaults(settings: &mut Config) -> Result<(), Error> {
     settings.set_default("broker.queue_name", "heracles_tasks")?;
-    settings.set_default("input_chunk_size", 67_108_864_i64)?; // 64 MiB
+    settings.set_default("scheduler.input_chunk_size", 67_108_864_i64)?; // 64 MiB
+    settings.set_default("scheduler.input_queue_size", 4)?;
     settings.set_default("server.port", 8081)?;
     settings.set_default("server.thread_pool_size", 8)?;
+    settings.set_default("state.location", "/tmp")?;
     Ok(())
 }
 

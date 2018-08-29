@@ -1,16 +1,12 @@
-mod map;
-mod reduce;
+pub mod map;
+pub mod reduce;
 
 use std::fmt;
 use std::fmt::Display;
 
 use failure::*;
 
-use heracles_proto::datatypes::{Job, Task};
-
-pub fn split(job: &Job) -> Result<Vec<Task>, Error> {
-    map::split(job)
-}
+// use heracles_proto::datatypes::{Job, Task};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Fail)]
 pub enum SplitterErrorKind {

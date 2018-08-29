@@ -5,8 +5,8 @@ use futures::Future;
 
 use heracles_proto::datatypes::Task;
 
-pub trait BrokerConnection {
-    fn send<'a>(&'a self, &'a Task) -> Box<Future<Item = Option<bool>, Error = Error> + 'a>;
+pub trait BrokerConnection: Send + Sync {
+    fn send(&self, Task) -> Box<Future<Item = Option<bool>, Error = Error> + Send + 'static>;
 }
 
 #[derive(Debug, Fail)]

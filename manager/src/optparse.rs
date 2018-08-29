@@ -8,13 +8,19 @@ pub fn parse_cmd_options<'a>() -> ArgMatches<'a> {
         .author("Heracles Authors <heracles@cpssd.net>")
         .about("Scheduling service for the Heracles network.")
         .arg(
-            Arg::with_name("input_chunk_size")
+            Arg::with_name("scheduler.input_chunk_size")
                 .help("The size (in MiB) of the chunks created from the input files.")
                 .long("input-chunk-size")
                 .long_help(
                     "The size (in MiB) of the chunks created from the input files.
 Each chunk corresponds to one map task, so this can be used to scale the job.",
                 )
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("scheduler.input_queue_size")
+                .help("The size of the buffer to the input queue of the scheduler.")
+                .long("scheduler-input-queue-size")
                 .takes_value(true),
         )
         .arg(
@@ -30,7 +36,7 @@ Each chunk corresponds to one map task, so this can be used to scale the job.",
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("server_port")
+            Arg::with_name("server.port")
                 .help("Port on which the gRPC server is running")
                 .long("server-port")
                 .takes_value(true),

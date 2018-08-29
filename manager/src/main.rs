@@ -10,7 +10,11 @@ use failure::*;
 use tokio::prelude::*;
 
 use heracles_manager::settings::SETTINGS;
-use heracles_manager::{broker, optparse, settings};
+use heracles_manager::{broker, optparse, scheduler, server, state, settings};
+
+use std::path::PathBuf;
+use std::sync::Arc;
+use std::thread;
 
 fn main() {
     if let Err(err) = run() {
@@ -27,13 +31,31 @@ fn run() -> Result<(), Error> {
     let arg_matches = optparse::parse_cmd_options();
     settings::init(&arg_matches)?;
 
-    let broker_addr = SETTINGS.read().unwrap().get("broker_address")?;
-    let broker_conn = broker::amqp::connect(broker_addr);
+    let broker_addr = SETTINGS.read().unwrap().get("broker.address")?;
+    let broker_conn = Arc::new(broker::amqp::connect(broker_addr)?);
+
+    let state_location: String = SETTINGS.read().unwrap().get("state.location")?;
+    let store = Arc::new(state::FileStore::new(&PathBuf::from(state_location))?);
+
+    let schdlr = Arc::new(scheduler::Scheduler::new(broker_conn, store)?);
+
+    let srv = server::Server::new(schdlr.clone())?;
+
+    thread::spawn(move || {
+        loop {
+            srv.is_alive();
+        }
+    });
+
+    // thread::spawn(move || {
+    //     tokio::spawn(broker_conn.channel.clone());
+    // });
 
     info!("Starting main event loop.");
     // We give this an empty future so that it will never terminate and continue driving other
     // futures to completion.
-    tokio::run(future::empty());
+    tokio::run(schdlr.run());
+    // tokio::run(schdl.run(broker_conn))
     Ok(())
 }
 

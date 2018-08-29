@@ -5,12 +5,14 @@ use heracles_proto::mapreduce as pb;
 use heracles_proto::mapreduce_grpc as grpc_pb;
 use scheduler::Scheduler;
 
+// use std::sync::Arc;
+
 pub struct JobScheduleService {
-    scheduler: Scheduler,
+    scheduler: Arc<Scheduler>,
 }
 
 impl JobScheduleService {
-    pub fn new(scheduler: Scheduler) -> Self {
+    pub fn new(scheduler: Arc<Scheduler>) -> Self {
         JobScheduleService { scheduler }
     }
 }
@@ -21,7 +23,9 @@ impl grpc_pb::JobScheduleService for JobScheduleService {
         _: RequestOptions,
         req: pb::ScheduleRequest,
     ) -> SingleResponse<pb::ScheduleResponse> {
-        match self.scheduler.schedule(req.get_job()) {
+        let scheduler = self.scheduler.clone();
+
+        match scheduler.schedule(req.get_job().clone()) {
             Ok(job_id) => {
                 let mut res = pb::ScheduleResponse::new();
                 res.set_job_id(job_id);
@@ -39,7 +43,9 @@ impl grpc_pb::JobScheduleService for JobScheduleService {
         _: RequestOptions,
         req: pb::CancelRequest,
     ) -> SingleResponse<pb::EmptyMessage> {
-        match self.scheduler.cancel(req.get_job_id()) {
+        let scheduler = self.scheduler.clone();
+
+        match scheduler.cancel(req.get_job_id()) {
             Ok(_) => {
                 return SingleResponse::completed(pb::EmptyMessage::new());
             }
@@ -53,7 +59,7 @@ impl grpc_pb::JobScheduleService for JobScheduleService {
     fn describe(
         &self,
         _: RequestOptions,
-        req: pb::DescribeRequest,
+        _req: pb::DescribeRequest,
     ) -> SingleResponse<pb::Description> {
         unimplemented!()
     }

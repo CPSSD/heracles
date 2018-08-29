@@ -1,6 +1,6 @@
 mod file;
 
-use self::file::FileStore;
+pub use self::file::FileStore;
 
 use std::fmt;
 use std::fmt::Display;
@@ -12,7 +12,7 @@ use heracles_proto::datatypes::{Job, Task, TaskKind};
 
 #[allow(doc_markdown)]
 /// Interface for creating connections to state stores, such as etcd or TiKV etc.
-pub trait State {
+pub trait State: Send + Sync {
     /// Serialize the job and save it in the state store so it can be loaded later.
     fn save_job(&self, job: &Job) -> Result<(), StateError>;
     /// Adds a task to the list of tasks and add it to pending
