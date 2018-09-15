@@ -37,12 +37,14 @@ jobs:
   go-build:
     working_directory: /go/src/github.com/cpssd/heracles
     docker:
-      - image: golang:1.10-alpine
+      - image: golang:1.11-alpine
+    environment:
+      GO111MODULE: "on"
     steps:
       - checkout
-      - run: apk -U add protobuf make git
-      - run: go get github.com/golang/dep/cmd/dep
-      - run: dep ensure
+      - run: apk -U add protobuf make git build-base
+      - run: make go-proto
+      - run: go get ./...
       - run: make go-build
 workflows:
   version: 2
