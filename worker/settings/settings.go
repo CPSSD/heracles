@@ -33,7 +33,7 @@ func Init() error {
 func setDefaults() {
 	settings.SetDefault("broker.queue_name", "heracles_tasks")
 	settings.SetDefault("broker.address", "")
-	settings.SetDefault("state.backend", "file")
+	settings.SetDefault("state.backend", "empty")
 	settings.SetDefault("state.location", "")
 }
 

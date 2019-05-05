@@ -8,14 +8,16 @@ use std::fmt::Display;
 use failure::*;
 use futures::Future;
 
-use heracles_proto::datatypes::{Job, Task, TaskKind};
+use heracles_proto::datatypes::{Job, Task, TaskKind, TaskStatus};
 
 #[allow(doc_markdown)]
 /// Interface for creating connections to state stores, such as etcd or TiKV etc.
 pub trait State {
     /// Serialize the job and save it in the state store so it can be loaded later.
     fn save_job(&self, job: &Job) -> Result<(), StateError>;
-    /// Adds a task to the list of tasks and add it to pending
+    /// Adds a task to the list of tasks.
+    /// If the task has status of PENDING, it is added to pending tasks
+    /// If the task has status of DONE, the pending task is removed.
     fn save_task(&self, task: &Task) -> Result<(), StateError>;
     /// List of pending map tasks for a specific job.
     fn pending_map_tasks(&self, job: &Job) -> Result<Vec<Task>, StateError>;
@@ -61,6 +63,8 @@ pub enum StateErrorKind {
     TaskWriteFailed,
     #[fail(display = "Failed to create pending task")]
     PendingTaskWriteFailed,
+    #[fail(display = "Failed to remove pending task")]
+    PendingTaskRemoveFailed,
     #[fail(display = "Failed operation.")]
     OperationFailed,
 }
